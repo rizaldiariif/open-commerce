@@ -331,6 +331,26 @@ export default defineSchema({
     .index('by_provider_invoice', ['providerInvoiceId'])
     .index('by_status', ['status']),
 
+  paymentWebhookEvents: defineTable({
+    provider: v.union(v.literal('xendit')),
+    providerEventId: v.string(),
+    providerInvoiceId: v.optional(v.string()),
+    orderId: v.optional(v.id('orders')),
+    externalId: v.optional(v.string()),
+    status: v.union(
+      v.literal('processed'),
+      v.literal('duplicate'),
+      v.literal('rejected'),
+    ),
+    reason: v.optional(v.string()),
+    payload: v.any(),
+    createdAt: v.number(),
+  })
+    .index('by_provider_event', ['provider', 'providerEventId'])
+    .index('by_invoice', ['providerInvoiceId'])
+    .index('by_order', ['orderId'])
+    .index('by_status', ['status']),
+
   shipments: defineTable({
     orderId: v.id('orders'),
     carrier: v.optional(v.string()),

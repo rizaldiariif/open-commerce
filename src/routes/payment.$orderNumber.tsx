@@ -86,12 +86,25 @@ function Payment() {
             </div>
           </dl>
           <p className="notice">
-            Xendit invoice payment is scheduled for the next implementation task.
+            {paymentMessage(orderState.order.paymentStatus)}
           </p>
+          {orderState.payment?.checkoutUrl &&
+          orderState.order.paymentStatus === 'pending' ? (
+            <a className="primary-link" href={orderState.payment.checkoutUrl}>
+              Pay with Xendit
+            </a>
+          ) : null}
         </aside>
       </div>
     </section>
   )
+}
+
+function paymentMessage(status: string) {
+  if (status === 'paid') return 'Payment has been received.'
+  if (status === 'failed') return 'Payment failed. Please place a new order.'
+  if (status === 'expired') return 'Payment expired. Please place a new order.'
+  return 'Complete payment through the secure Xendit invoice link.'
 }
 
 function formatMoney(value: number) {

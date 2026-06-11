@@ -6,7 +6,7 @@ import {
   useState,
 } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useMutation, useQuery } from 'convex/react'
+import { useAction, useMutation, useQuery } from 'convex/react'
 
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
@@ -15,7 +15,10 @@ export const Route = createFileRoute('/checkout')({
   head: () => ({
     meta: [
       { title: 'Checkout | Muse Commerce' },
-      { name: 'description', content: 'Enter shipping details and place order.' },
+      {
+        name: 'description',
+        content: 'Enter shipping details and place order.',
+      },
     ],
   }),
   component: Checkout,
@@ -35,6 +38,7 @@ const emptyAddress = {
 function Checkout() {
   const checkout = useQuery(api.checkout.getCheckout)
   const createOrder = useMutation(api.checkout.createOrder)
+  const createInvoice = useAction(api.payments.createInvoiceForOrder)
   const navigate = useNavigate()
   const [selectedAddressId, setSelectedAddressId] = useState('')
   const [address, setAddress] = useState(emptyAddress)
@@ -83,12 +87,15 @@ function Checkout() {
         notes: notes || undefined,
         saveAddress,
       })
+      await createInvoice({ orderId: result.orderId })
       await navigate({
         to: '/payment/$orderNumber',
         params: { orderNumber: result.orderNumber },
       })
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Could not place order.')
+      setMessage(
+        error instanceof Error ? error.message : 'Could not place order.',
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -109,7 +116,11 @@ function Checkout() {
         <p className="eyebrow">Checkout</p>
         <h1>Login to checkout</h1>
         <p>Orders are attached to signed-in customer accounts.</p>
-        <Link to="/login" search={{ redirect: '/checkout' }} className="primary-link">
+        <Link
+          to="/login"
+          search={{ redirect: '/checkout' }}
+          className="primary-link"
+        >
           Login
         </Link>
       </section>
@@ -134,7 +145,7 @@ function Checkout() {
         <div>
           <p className="eyebrow">Checkout</p>
           <h1>Shipping and payment</h1>
-          <p>Place a pending order; payment collection is added in the next task.</p>
+          <p>Create a Xendit invoice and continue to secure payment.</p>
         </div>
         <Link to="/cart" className="secondary-link">
           Back to cart
@@ -152,7 +163,10 @@ function Checkout() {
               required
               value={contact.name}
               onChange={(event) =>
-                setContact((current) => ({ ...current, name: event.target.value }))
+                setContact((current) => ({
+                  ...current,
+                  name: event.target.value,
+                }))
               }
             />
           </label>
@@ -163,7 +177,10 @@ function Checkout() {
               type="email"
               value={contact.email}
               onChange={(event) =>
-                setContact((current) => ({ ...current, email: event.target.value }))
+                setContact((current) => ({
+                  ...current,
+                  email: event.target.value,
+                }))
               }
             />
           </label>
@@ -172,7 +189,10 @@ function Checkout() {
             <input
               value={contact.phone}
               onChange={(event) =>
-                setContact((current) => ({ ...current, phone: event.target.value }))
+                setContact((current) => ({
+                  ...current,
+                  phone: event.target.value,
+                }))
               }
             />
           </label>
@@ -253,8 +273,11 @@ function Checkout() {
           {!checkout.cart.canCheckout ? (
             <p className="cart-warning">Resolve cart issues before checkout.</p>
           ) : null}
-          <button type="submit" disabled={!checkout.cart.canCheckout || isSubmitting}>
-            {isSubmitting ? 'Placing order' : 'Place pending order'}
+          <button
+            type="submit"
+            disabled={!checkout.cart.canCheckout || isSubmitting}
+          >
+            {isSubmitting ? 'Creating invoice' : 'Continue to payment'}
           </button>
         </aside>
       </form>
@@ -288,7 +311,10 @@ function AddressFields({
             required={field !== 'addressLine2'}
             value={address[field]}
             onChange={(event) =>
-              setAddress((current) => ({ ...current, [field]: event.target.value }))
+              setAddress((current) => ({
+                ...current,
+                [field]: event.target.value,
+              }))
             }
           />
         </label>

@@ -16,8 +16,10 @@ import type * as crons from "../crons.js";
 import type * as domain from "../domain.js";
 import type * as health from "../health.js";
 import type * as http from "../http.js";
+import type * as payments from "../payments.js";
 import type * as profiles from "../profiles.js";
 import type * as storefront from "../storefront.js";
+import type * as xendit from "../xendit.js";
 
 import type {
   ApiFromModules,
@@ -34,8 +36,10 @@ declare const fullApi: ApiFromModules<{
   domain: typeof domain;
   health: typeof health;
   http: typeof http;
+  payments: typeof payments;
   profiles: typeof profiles;
   storefront: typeof storefront;
+  xendit: typeof xendit;
 }>;
 
 /**

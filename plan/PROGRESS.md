@@ -16,8 +16,54 @@ This file is the shared progress log for future Codex threads. Update it at the 
 - Task 04 admin catalog/content is complete and ready for manual review.
 - Task 05 storefront catalog/cart is complete and ready for manual review.
 - Task 06 checkout/orders/coupons is complete and ready for manual review.
+- Task 07 Xendit payments/webhooks is complete and ready for manual review.
 
 ## Task Log
+
+### Task 07: Xendit Payments and Webhooks
+
+- Status: complete
+- Started: 2026-06-11
+- Completed: 2026-06-11
+- Summary:
+  - Added a Xendit invoice client/action that creates invoices after pending
+    order creation and records provider invoice ID, external ID/reference,
+    checkout URL, amount, currency, raw status, and expiry.
+  - Added `/api/xendit/webhook` on the Convex HTTP router with callback-token
+    verification, payload validation, duplicate event detection, and
+    debuggable webhook event storage.
+  - Added idempotent payment mutations for paid/settled, failed, expired, and
+    pending webhook states.
+  - Paid/settled webhooks now mark payment/order paid, reduce stock, release
+    reserved stock, and consume reserved coupons exactly once.
+  - Failed/expired invoice creation or webhooks now mark orders
+    `payment_failed`, update payment status, release stock reservations, and
+    release coupon reservations through the pending-order release helper.
+  - Updated checkout to create the invoice before redirecting to payment, and
+    updated the payment page to show the Xendit invoice link while pending.
+- Build:
+  - Passed: `npm run build`.
+- Additional checks:
+  - Passed: `npx convex codegen`.
+- Docs updated:
+  - Updated `README.md`.
+  - Updated `.env.example`.
+  - Updated `plan/07-xendit-payments-webhooks.md`.
+- Manual test:
+  - Set `XENDIT_SECRET_KEY`, `XENDIT_WEBHOOK_TOKEN`, and
+    `XENDIT_CALLBACK_URL=https://<deployment>.convex.site/api/xendit/webhook`
+    in the Convex deployment environment.
+  - Run `npm run dev:convex` and `npm run dev`, complete checkout as a signed-in
+    customer, and confirm the payment page shows a Xendit invoice link.
+  - Pay a sandbox invoice and confirm webhook handling marks the order/payment
+    paid, reduces stock, clears reserved stock, and consumes any reserved coupon
+    exactly once.
+  - Replay the same webhook payload and confirm a duplicate event is stored
+    without changing stock or coupon counts again.
+  - Send failed/expired webhook payloads and confirm reservations are released
+    exactly once.
+  - Send mismatched amount, currency, or external ID payloads and confirm
+    rejected webhook events are stored without state changes.
 
 ### Task 06: Checkout, Orders, and Coupons
 

@@ -46,7 +46,10 @@ async function requireProfile(ctx: QueryCtx | MutationCtx) {
   return profile
 }
 
-async function activeCart(ctx: QueryCtx | MutationCtx, profileId: Id<'profiles'>) {
+async function activeCart(
+  ctx: QueryCtx | MutationCtx,
+  profileId: Id<'profiles'>,
+) {
   return await ctx.db
     .query('carts')
     .withIndex('by_profile_status', (q) =>
@@ -173,7 +176,9 @@ export const getCheckout = query({
     return {
       status: 'ready' as const,
       profile,
-      addresses: addresses.sort((a, b) => Number(b.isDefault) - Number(a.isDefault)),
+      addresses: addresses.sort(
+        (a, b) => Number(b.isDefault) - Number(a.isDefault),
+      ),
       settings: storeSettings,
       cart: {
         cart,
@@ -276,7 +281,9 @@ export const createOrder = mutation({
         throw new ConvexError('A cart item is no longer available.')
       }
       if (item.quantity > availableStock(variant)) {
-        throw new ConvexError(`Only ${availableStock(variant)} left for ${variant.sku}.`)
+        throw new ConvexError(
+          `Only ${availableStock(variant)} left for ${variant.sku}.`,
+        )
       }
       orderLines.push({ item, product, variant })
     }
@@ -408,14 +415,20 @@ export const getPaymentOrder = query({
     const profile = await requireProfile(ctx)
     const order = await ctx.db
       .query('orders')
-      .withIndex('by_order_number', (q) => q.eq('orderNumber', args.orderNumber))
+      .withIndex('by_order_number', (q) =>
+        q.eq('orderNumber', args.orderNumber),
+      )
       .unique()
     if (!order || order.profileId !== profile._id) return null
     const items = await ctx.db
       .query('orderItems')
       .withIndex('by_order', (q) => q.eq('orderId', order._id))
       .collect()
-    return { order, items }
+    const payment = await ctx.db
+      .query('payments')
+      .withIndex('by_order', (q) => q.eq('orderId', order._id))
+      .unique()
+    return { order, items, payment }
   },
 })
 
@@ -434,7 +447,9 @@ export const cleanupExpiredPendingOrders = internalMutation({
       Date.now() - (storeSettings.pendingPaymentExpiryMinutes ?? 30) * 60 * 1000
     const pending = await ctx.db
       .query('orders')
-      .withIndex('by_order_status', (q) => q.eq('orderStatus', 'pending_payment'))
+      .withIndex('by_order_status', (q) =>
+        q.eq('orderStatus', 'pending_payment'),
+      )
       .collect()
 
     for (const order of pending) {
@@ -445,7 +460,7 @@ export const cleanupExpiredPendingOrders = internalMutation({
   },
 })
 
-async function releasePendingOrder(
+export async function releasePendingOrder(
   ctx: MutationCtx,
   orderId: Id<'orders'>,
   paymentStatus: 'expired' | 'failed' = 'expired',
@@ -473,7 +488,10 @@ async function releasePendingOrder(
       type: 'release',
       quantityDelta: item.quantity,
       stockAfter: variant.stockOnHand - nextReserved,
-      reason: 'Pending order expired',
+      reason:
+        paymentStatus === 'failed'
+          ? 'Pending order payment failed'
+          : 'Pending order expired',
       orderId,
       createdAt: now,
     })

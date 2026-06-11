@@ -59,14 +59,22 @@ The public storefront includes:
 - `/cart` for signed-in customer cart review, quantity updates, removal, and
   stock validation
 - `/checkout` for signed-in customer contact/shipping details, saved address
-  selection, coupon entry, and pending order creation
-- `/payment/$orderNumber` for the pending payment handoff screen that will gain
-  Xendit invoice links in the next task
+  selection, coupon entry, pending order creation, and Xendit invoice creation
+- `/payment/$orderNumber` for the payment handoff screen with Xendit invoice
+  links and live order/payment status
 
 Pending checkout orders reserve stock and coupon capacity in Convex. Scheduled
 expiry and a recurring cleanup cron mark expired pending orders as
 `payment_failed`, release reserved stock, and release reserved coupon
 redemptions idempotently.
+
+Xendit invoices are created from Convex actions after checkout order creation.
+Configure `XENDIT_SECRET_KEY`, `XENDIT_WEBHOOK_TOKEN`, and
+`XENDIT_CALLBACK_URL` in the Convex deployment environment. The callback URL
+should point at the Convex site endpoint:
+`https://<deployment>.convex.site/api/xendit/webhook`. Webhooks store a
+debuggable event record, reject mismatched amount/currency/order references, and
+ignore duplicate event IDs before changing stock, coupons, orders, or payments.
 
 Build and typecheck:
 
