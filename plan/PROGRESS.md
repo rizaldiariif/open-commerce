@@ -17,8 +17,50 @@ This file is the shared progress log for future Codex threads. Update it at the 
 - Task 05 storefront catalog/cart is complete and ready for manual review.
 - Task 06 checkout/orders/coupons is complete and ready for manual review.
 - Task 07 Xendit payments/webhooks is complete and ready for manual review.
+- Task 08 email notifications is complete and ready for manual review.
 
 ## Task Log
+
+### Task 08: Email Notifications
+
+- Status: complete
+- Started: 2026-06-11
+- Completed: 2026-06-11
+- Summary:
+  - Implementing provider-agnostic email delivery with Resend for the MVP.
+  - Added default editable templates for invoice, payment, fulfillment,
+    cancellation, paid-order admin, and low-stock admin notifications.
+  - Added Resend-backed email action that renders templates, logs queued/sent
+    or failed attempts in `emailEvents`, and keeps send failures isolated from
+    order/payment mutations.
+  - Connected invoice-created, payment-confirmed, payment-failed, and
+    payment-expired emails to the existing checkout/payment lifecycle.
+  - Added optional admin paid-order and low-stock email notifications.
+  - Added a superadmin Emails tab in `/admin` for template editing and recent
+    email attempt review.
+- Build:
+  - Passed: `npm run build`.
+- Additional checks:
+  - Passed: `npx convex codegen`.
+- Docs updated:
+  - Updated `README.md`.
+  - Updated `.env.example`.
+  - Updated `plan/08-email-notifications.md`.
+- Manual test:
+  - Set `RESEND_API_KEY`, `RESEND_FROM_EMAIL` or `EMAIL_FROM`, and optionally
+    `ADMIN_NOTIFICATION_EMAIL` in the Convex deployment environment.
+  - Run `npx convex run bootstrap:seedDefaults` and confirm default email
+    templates appear in `/admin` under Emails.
+  - Complete checkout as a customer and confirm an invoice-created email attempt
+    is logged.
+  - Pay a sandbox Xendit invoice and confirm customer payment-confirmed plus
+    admin paid-order email attempts are logged.
+  - Trigger failed and expired payment flows and confirm matching customer email
+    attempts are logged while order/payment state still updates.
+  - Temporarily use an invalid Resend API key and confirm failed events appear
+    in `/admin` without rolling back payment or order status changes.
+- Commit:
+  - `0acb663`.
 
 ### Task 07: Xendit Payments and Webhooks
 
@@ -232,4 +274,4 @@ This file is the shared progress log for future Codex threads. Update it at the 
 
 ## Next Task
 
-Start `plan/07-xendit-payments-webhooks.md` in a new Codex thread after Task 06 is committed and pushed.
+Start `plan/09-order-management-fulfillment.md` in a new Codex thread after Task 08 is committed and pushed.

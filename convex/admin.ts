@@ -178,6 +178,8 @@ export const getWorkspace = query({
       recentActivity,
       recentInventoryMovements,
       coupons,
+      emailTemplates,
+      recentEmailEvents,
     ] = await Promise.all([
       ctx.db.query('categories').collect(),
       ctx.db.query('products').collect(),
@@ -194,6 +196,8 @@ export const getWorkspace = query({
       ctx.db.query('adminActivityLogs').order('desc').take(12),
       ctx.db.query('inventoryMovements').order('desc').take(12),
       ctx.db.query('coupons').collect(),
+      ctx.db.query('emailTemplates').collect(),
+      ctx.db.query('emailEvents').order('desc').take(20),
     ])
 
     return {
@@ -215,6 +219,8 @@ export const getWorkspace = query({
       recentActivity,
       recentInventoryMovements,
       coupons: coupons.sort((a, b) => a.code.localeCompare(b.code)),
+      emailTemplates: emailTemplates.sort((a, b) => a.key.localeCompare(b.key)),
+      recentEmailEvents,
     }
   },
 })
@@ -857,10 +863,7 @@ export const upsertCoupon = mutation({
       if (amount !== undefined) assertMoneyAmount(amount)
     }
     for (const limit of [args.usageLimit, args.usageLimitPerCustomer]) {
-      if (
-        limit !== undefined &&
-        (!Number.isInteger(limit) || limit <= 0)
-      ) {
+      if (limit !== undefined && (!Number.isInteger(limit) || limit <= 0)) {
         throw new ConvexError('Coupon limits must be positive whole numbers.')
       }
     }

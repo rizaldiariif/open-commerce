@@ -28,6 +28,9 @@ Seed default site settings and homepage content after Convex is running:
 npx convex run bootstrap:seedDefaults
 ```
 
+The same seed command also creates default transactional email templates when
+they are missing.
+
 Authentication uses Convex Auth with email/password accounts. Register or log in
 through `/register` and `/login`; signed-in users get a `customer` profile by
 default.
@@ -48,6 +51,8 @@ The admin workspace at `/admin` includes catalog and content operations for:
 - coupon creation and editing for fixed amount or percentage discounts, minimum
   subtotals, percentage caps, total/per-customer limits, active windows, and
   enable/disable controls
+- superadmin-only transactional email template editing and recent email attempt
+  review
 - recent admin activity and inventory movement review
 
 The public storefront includes:
@@ -75,6 +80,14 @@ should point at the Convex site endpoint:
 `https://<deployment>.convex.site/api/xendit/webhook`. Webhooks store a
 debuggable event record, reject mismatched amount/currency/order references, and
 ignore duplicate event IDs before changing stock, coupons, orders, or payments.
+
+Transactional emails are sent through a provider abstraction backed by Resend
+for the MVP. Configure `RESEND_API_KEY` plus either `RESEND_FROM_EMAIL` or
+`EMAIL_FROM` in the Convex deployment environment. Invoice, payment confirmed,
+payment failed, payment expired, admin paid-order, and admin low-stock emails
+are attempted from the current payment lifecycle. Fulfillment templates are
+seeded for the order management task. Email attempts are logged in
+`emailEvents`, and failed sends do not roll back order or payment updates.
 
 Build and typecheck:
 

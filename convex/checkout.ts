@@ -10,6 +10,7 @@ import {
   defaultSiteSettings,
   DEFAULT_SITE_SETTINGS_KEY,
 } from './domain'
+import { enqueueOrderEmail, orderEmailVariables } from './emails'
 
 const addressInput = v.object({
   recipientName: v.string(),
@@ -511,6 +512,14 @@ export async function releasePendingOrder(
     orderStatus: 'payment_failed',
     paymentStatus,
     updatedAt: now,
+  })
+  await enqueueOrderEmail(ctx, {
+    templateKey:
+      paymentStatus === 'failed' ? 'payment_failed' : 'payment_expired',
+    recipientEmail: order.email,
+    orderId,
+    variables: await orderEmailVariables(ctx, order),
+    metadata: { paymentStatus },
   })
 }
 

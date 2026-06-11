@@ -11,6 +11,7 @@ import {
 } from './_generated/server'
 import type { MutationCtx } from './_generated/server'
 import { releasePendingOrder } from './checkout'
+import { enqueueOrderEmail, orderEmailVariables } from './emails'
 import { createXenditInvoice, xenditWebhookAuthorized } from './xendit'
 
 type WebhookDecisionStatus = 'processed' | 'duplicate' | 'rejected'
@@ -140,6 +141,18 @@ export const recordInvoiceCreated = internalMutation({
         expiresAt: args.expiresAt,
         updatedAt: now,
       })
+      const order = await ctx.db.get(args.orderId)
+      if (order) {
+        await enqueueOrderEmail(ctx, {
+          templateKey: 'invoice_created',
+          recipientEmail: order.email,
+          orderId: order._id,
+          variables: await orderEmailVariables(ctx, order, {
+            paymentUrl: args.checkoutUrl ?? '',
+          }),
+          metadata: { paymentId: existing._id },
+        })
+      }
       return await ctx.db.get(existing._id)
     }
 
@@ -157,6 +170,18 @@ export const recordInvoiceCreated = internalMutation({
       createdAt: now,
       updatedAt: now,
     })
+    const order = await ctx.db.get(args.orderId)
+    if (order) {
+      await enqueueOrderEmail(ctx, {
+        templateKey: 'invoice_created',
+        recipientEmail: order.email,
+        orderId: order._id,
+        variables: await orderEmailVariables(ctx, order, {
+          paymentUrl: args.checkoutUrl ?? '',
+        }),
+        metadata: { paymentId },
+      })
+    }
     return await ctx.db.get(paymentId)
   },
 })
@@ -370,6 +395,15 @@ async function markOrderPaid(
     updatedAt: now,
   })
   await patchPayment(ctx, payment._id, 'paid', rawStatus, paidAt ?? now)
+  await enqueueOrderEmail(ctx, {
+    templateKey: 'payment_confirmed',
+    recipientEmail: order.email,
+    orderId: order._id,
+    variables: await orderEmailVariables(ctx, order),
+    metadata: { paymentId: payment._id },
+  })
+  await enqueueAdminPaidOrderEmail(ctx, order)
+  await enqueueLowStockEmails(ctx, items)
 }
 
 async function patchPayment(
@@ -406,6 +440,61 @@ function validateWebhookOrder(
     return 'Invoice currency does not match payment record.'
   }
   return null
+}
+
+async function enqueueAdminPaidOrderEmail(
+  ctx: MutationCtx,
+  order: Doc<'orders'>,
+) {
+  const settings = await siteSettings(ctx)
+  await enqueueOrderEmail(ctx, {
+    templateKey: 'admin_paid_order',
+    recipientEmail: settings.supportEmail,
+    orderId: order._id,
+    variables: await orderEmailVariables(ctx, order),
+    metadata: { audience: 'admin' },
+  })
+}
+
+async function enqueueLowStockEmails(
+  ctx: MutationCtx,
+  items: Doc<'orderItems'>[],
+) {
+  const settings = await siteSettings(ctx)
+  for (const item of items) {
+    if (!item.variantId) continue
+    const variant = await ctx.db.get(item.variantId)
+    if (
+      !variant ||
+      variant.lowStockThreshold === undefined ||
+      variant.stockOnHand - variant.reservedStock > variant.lowStockThreshold
+    ) {
+      continue
+    }
+    await enqueueOrderEmail(ctx, {
+      templateKey: 'admin_low_stock',
+      recipientEmail: settings.supportEmail,
+      variables: {
+        sku: variant.sku,
+        availableStock: String(variant.stockOnHand - variant.reservedStock),
+        lowStockThreshold: String(variant.lowStockThreshold),
+      },
+      metadata: { audience: 'admin', variantId: variant._id },
+    })
+  }
+}
+
+async function siteSettings(ctx: MutationCtx) {
+  const stored = await ctx.db
+    .query('siteSettings')
+    .withIndex('by_key', (q) => q.eq('key', 'default'))
+    .unique()
+  return {
+    supportEmail:
+      process.env.ADMIN_NOTIFICATION_EMAIL ??
+      stored?.supportEmail ??
+      'support@example.com',
+  }
 }
 
 async function recordWebhook(

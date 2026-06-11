@@ -145,6 +145,19 @@ export const assertFulfillmentStatusTransition = (
 
 export const DEFAULT_SITE_SETTINGS_KEY = 'default'
 export const DEFAULT_HOME_CONTENT_KEY = 'homepage'
+export const EMAIL_TEMPLATE_KEYS = [
+  'invoice_created',
+  'payment_confirmed',
+  'payment_failed',
+  'payment_expired',
+  'order_processing',
+  'order_in_delivery',
+  'order_delivered',
+  'order_cancelled',
+  'admin_paid_order',
+  'admin_low_stock',
+] as const
+export type EmailTemplateKey = (typeof EMAIL_TEMPLATE_KEYS)[number]
 
 export const defaultSiteSettings = {
   key: DEFAULT_SITE_SETTINGS_KEY,
@@ -176,3 +189,93 @@ export const defaultHomepageContent = {
   aboutText: 'Muse Commerce is a focused single-brand storefront.',
   footerText: 'Curated essentials, packed with care.',
 } as const
+
+export const defaultEmailTemplates: Record<
+  EmailTemplateKey,
+  {
+    subject: string
+    previewText: string
+    htmlBody: string
+    textBody: string
+  }
+> = {
+  invoice_created: {
+    subject: 'Invoice for order {{orderNumber}}',
+    previewText: 'Your payment invoice is ready.',
+    htmlBody:
+      '<p>Hi {{customerName}},</p><p>Your invoice for order <strong>{{orderNumber}}</strong> is ready.</p><p>Total: {{grandTotal}}.</p><p><a href="{{paymentUrl}}">Open payment invoice</a></p>',
+    textBody:
+      'Hi {{customerName}}, your invoice for order {{orderNumber}} is ready. Total: {{grandTotal}}. Pay here: {{paymentUrl}}',
+  },
+  payment_confirmed: {
+    subject: 'Payment confirmed for {{orderNumber}}',
+    previewText: 'We received your payment.',
+    htmlBody:
+      '<p>Hi {{customerName}},</p><p>Payment for order <strong>{{orderNumber}}</strong> is confirmed. We will start preparing it soon.</p>',
+    textBody:
+      'Hi {{customerName}}, payment for order {{orderNumber}} is confirmed. We will start preparing it soon.',
+  },
+  payment_failed: {
+    subject: 'Payment failed for {{orderNumber}}',
+    previewText: 'Your payment could not be completed.',
+    htmlBody:
+      '<p>Hi {{customerName}},</p><p>Payment for order <strong>{{orderNumber}}</strong> could not be completed. Your reserved items have been released.</p>',
+    textBody:
+      'Hi {{customerName}}, payment for order {{orderNumber}} could not be completed. Your reserved items have been released.',
+  },
+  payment_expired: {
+    subject: 'Payment expired for {{orderNumber}}',
+    previewText: 'Your payment window has expired.',
+    htmlBody:
+      '<p>Hi {{customerName}},</p><p>The payment window for order <strong>{{orderNumber}}</strong> has expired. Your reserved items have been released.</p>',
+    textBody:
+      'Hi {{customerName}}, the payment window for order {{orderNumber}} has expired. Your reserved items have been released.',
+  },
+  order_processing: {
+    subject: 'Order {{orderNumber}} is being prepared',
+    previewText: 'Your order is now processing.',
+    htmlBody:
+      '<p>Hi {{customerName}},</p><p>Order <strong>{{orderNumber}}</strong> is now being prepared.</p>',
+    textBody:
+      'Hi {{customerName}}, order {{orderNumber}} is now being prepared.',
+  },
+  order_in_delivery: {
+    subject: 'Order {{orderNumber}} is on the way',
+    previewText: 'Your order is in delivery.',
+    htmlBody:
+      '<p>Hi {{customerName}},</p><p>Order <strong>{{orderNumber}}</strong> is on the way.</p><p>Courier: {{carrier}} {{service}}<br />Airwaybill: {{trackingNumber}}</p>',
+    textBody:
+      'Hi {{customerName}}, order {{orderNumber}} is on the way. Courier: {{carrier}} {{service}}. Airwaybill: {{trackingNumber}}',
+  },
+  order_delivered: {
+    subject: 'Order {{orderNumber}} was delivered',
+    previewText: 'Your order has been delivered.',
+    htmlBody:
+      '<p>Hi {{customerName}},</p><p>Order <strong>{{orderNumber}}</strong> has been delivered. Thank you for shopping with us.</p>',
+    textBody:
+      'Hi {{customerName}}, order {{orderNumber}} has been delivered. Thank you for shopping with us.',
+  },
+  order_cancelled: {
+    subject: 'Order {{orderNumber}} was cancelled',
+    previewText: 'Your order has been cancelled.',
+    htmlBody:
+      '<p>Hi {{customerName}},</p><p>Order <strong>{{orderNumber}}</strong> has been cancelled.</p>',
+    textBody: 'Hi {{customerName}}, order {{orderNumber}} has been cancelled.',
+  },
+  admin_paid_order: {
+    subject: 'Paid order {{orderNumber}}',
+    previewText: 'A customer order was paid.',
+    htmlBody:
+      '<p>Order <strong>{{orderNumber}}</strong> was paid.</p><p>Customer: {{customerName}} ({{customerEmail}})<br />Total: {{grandTotal}}</p>',
+    textBody:
+      'Order {{orderNumber}} was paid. Customer: {{customerName}} ({{customerEmail}}). Total: {{grandTotal}}',
+  },
+  admin_low_stock: {
+    subject: 'Low stock: {{sku}}',
+    previewText: 'A variant has reached its low-stock threshold.',
+    htmlBody:
+      '<p>Variant <strong>{{sku}}</strong> has low stock.</p><p>Available: {{availableStock}}. Threshold: {{lowStockThreshold}}.</p>',
+    textBody:
+      'Variant {{sku}} has low stock. Available: {{availableStock}}. Threshold: {{lowStockThreshold}}.',
+  },
+}
