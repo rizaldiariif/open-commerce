@@ -25,6 +25,8 @@ export default defineSchema({
   siteSettings: defineTable({
     key: v.string(),
     storeName: v.string(),
+    logoImageId: v.optional(v.id('mediaAssets')),
+    faviconImageId: v.optional(v.id('mediaAssets')),
     supportEmail: v.string(),
     currency: v.string(),
     locale: v.string(),
@@ -32,6 +34,7 @@ export default defineSchema({
     maintenanceMode: v.boolean(),
     seoTitle: v.optional(v.string()),
     seoDescription: v.optional(v.string()),
+    pendingPaymentExpiryMinutes: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index('by_key', ['key']),
@@ -44,6 +47,18 @@ export default defineSchema({
     heroCtaLabel: v.optional(v.string()),
     heroCtaHref: v.optional(v.string()),
     featuredCategorySlugs: v.array(v.string()),
+    homepageBanners: v.optional(
+      v.array(
+        v.object({
+          title: v.string(),
+          body: v.optional(v.string()),
+          imageId: v.optional(v.id('mediaAssets')),
+          href: v.optional(v.string()),
+        }),
+      ),
+    ),
+    aboutText: v.optional(v.string()),
+    footerText: v.optional(v.string()),
     announcement: v.optional(v.string()),
     status: v.union(
       v.literal('draft'),
@@ -66,6 +81,8 @@ export default defineSchema({
     width: v.optional(v.number()),
     height: v.optional(v.number()),
     uploadedByProfileId: v.optional(v.id('profiles')),
+    deletedAt: v.optional(v.number()),
+    deletedByProfileId: v.optional(v.id('profiles')),
     createdAt: v.number(),
   })
     .index('by_storage_id', ['storageId'])

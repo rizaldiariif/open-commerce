@@ -156,6 +156,7 @@ export const defaultSiteSettings = {
   maintenanceMode: false,
   seoTitle: 'Muse Commerce',
   seoDescription: 'A curated single-brand commerce experience.',
+  pendingPaymentExpiryMinutes: 30,
 } as const
 
 export const defaultHomepageContent = {
@@ -165,5 +166,13 @@ export const defaultHomepageContent = {
   heroCtaLabel: 'Shop new arrivals',
   heroCtaHref: '/products',
   featuredCategorySlugs: [] as string[],
+  homepageBanners: [] as {
+    title: string
+    body?: string
+    imageId?: never
+    href?: string
+  }[],
   announcement: 'Free shipping offers and launches will appear here soon.',
+  aboutText: 'Muse Commerce is a focused single-brand storefront.',
+  footerText: 'Curated essentials, packed with care.',
 } as const

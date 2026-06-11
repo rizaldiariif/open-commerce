@@ -37,6 +37,16 @@ store setup, visit `/setup`, and enter the local `SETUP_TOKEN`. Bootstrap is
 disabled after the first `superadmin` profile exists. Admin screens at `/admin`
 require an `admin` or `superadmin` profile.
 
+The admin workspace at `/admin` includes catalog and content operations for:
+
+- categories, products, variants, and image assignments
+- Convex File Storage media uploads with soft deletion from pickers
+- append-only inventory adjustments that keep variant stock in sync
+- homepage content and banner text
+- superadmin-only store settings, including logo, favicon, SEO fields, support
+  email, and pending payment expiry
+- recent admin activity and inventory movement review
+
 Build and typecheck:
 
 ```sh

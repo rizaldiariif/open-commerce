@@ -13,8 +13,32 @@ This file is the shared progress log for future Codex threads. Update it at the 
 - Task 01 foundation/tooling is complete and ready for manual review.
 - Task 02 Convex schema/domain is complete and ready for manual review.
 - Task 03 authentication/roles/bootstrap is complete and ready for manual review.
+- Task 04 admin catalog/content is complete and ready for manual review.
 
 ## Task Log
+
+### Task 04: Admin Catalog and Content
+
+- Status: complete
+- Started: 2026-06-11
+- Completed: 2026-06-11
+- Summary:
+  - Added guarded Convex admin functions for categories, products, variants, media, inventory adjustments, homepage content, superadmin-only settings, and activity logging.
+  - Extended schema/default content for logo, favicon, pending payment expiry minutes, homepage banners, about/footer text, and media soft deletion metadata.
+  - Replaced the `/admin` placeholder with a tabbed admin console covering catalog, inventory, media, content, settings, and activity review.
+  - Kept variant stock consistent through append-only `inventoryMovements` on initial stock and later adjustments.
+- Build:
+  - Passed: `npm run build`.
+- Additional checks:
+  - Passed: `npx convex codegen`.
+  - Passed: `npm run lint`.
+- Docs updated:
+  - Updated `README.md`.
+  - Updated `plan/04-admin-catalog-content.md`.
+- Manual test:
+  - Run `npm run dev:convex` and `npm run dev`, sign in as the bootstrapped superadmin, and open `/admin`.
+  - Upload media, create a category, create a product with images, create a variant with initial stock, and adjust inventory.
+  - Confirm activity/inventory logs update, soft-deleted media disappears from pickers, content saves, and settings save only as superadmin.
 
 ### Task 03: Authentication, Roles, and Bootstrap
 
@@ -100,4 +124,4 @@ This file is the shared progress log for future Codex threads. Update it at the 
 
 ## Next Task
 
-Start `plan/03-auth-roles-bootstrap.md` in a new Codex thread after Task 02 is committed and pushed.
+Start `plan/05-storefront-catalog-cart.md` in a new Codex thread after Task 04 is committed and pushed.
