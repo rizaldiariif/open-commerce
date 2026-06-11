@@ -45,6 +45,9 @@ The admin workspace at `/admin` includes catalog and content operations for:
 - homepage content and banner text
 - superadmin-only store settings, including logo, favicon, SEO fields, support
   email, and pending payment expiry
+- coupon creation and editing for fixed amount or percentage discounts, minimum
+  subtotals, percentage caps, total/per-customer limits, active windows, and
+  enable/disable controls
 - recent admin activity and inventory movement review
 
 The public storefront includes:
@@ -54,7 +57,16 @@ The public storefront includes:
 - `/products/$slug` product detail pages with image galleries, variants, stock,
   and login-aware add-to-cart
 - `/cart` for signed-in customer cart review, quantity updates, removal, and
-  stock validation before the future checkout step
+  stock validation
+- `/checkout` for signed-in customer contact/shipping details, saved address
+  selection, coupon entry, and pending order creation
+- `/payment/$orderNumber` for the pending payment handoff screen that will gain
+  Xendit invoice links in the next task
+
+Pending checkout orders reserve stock and coupon capacity in Convex. Scheduled
+expiry and a recurring cleanup cron mark expired pending orders as
+`payment_failed`, release reserved stock, and release reserved coupon
+redemptions idempotently.
 
 Build and typecheck:
 

@@ -15,8 +15,45 @@ This file is the shared progress log for future Codex threads. Update it at the 
 - Task 03 authentication/roles/bootstrap is complete and ready for manual review.
 - Task 04 admin catalog/content is complete and ready for manual review.
 - Task 05 storefront catalog/cart is complete and ready for manual review.
+- Task 06 checkout/orders/coupons is complete and ready for manual review.
 
 ## Task Log
+
+### Task 06: Checkout, Orders, and Coupons
+
+- Status: complete
+- Started: 2026-06-11
+- Completed: 2026-06-11
+- Summary:
+  - Added logged-in checkout data, saved address support, pending order
+    creation, line/contact/address snapshots, stock reservation, coupon
+    reservation, and payment-order lookup in Convex.
+  - Added idempotent pending order expiry plus a recurring cleanup cron that
+    marks expired orders `payment_failed`, releases reserved stock, and releases
+    reserved coupon redemptions.
+  - Added admin coupon CRUD for fixed amount and percentage discounts with
+    minimum subtotal, percentage cap, total usage limit, per-customer limit,
+    active window, and enable/disable controls.
+  - Added `/checkout` and `/payment/$orderNumber`, and updated `/cart` to enter
+    checkout when cart items are valid.
+- Build:
+  - Passed: `npm run build`.
+- Additional checks:
+  - Passed: `npx convex codegen`.
+- Docs updated:
+  - Updated `README.md`.
+  - Updated `plan/06-checkout-orders-coupons.md`.
+- Manual test:
+  - Run `npm run dev:convex` and `npm run dev`, sign in as an admin, and create
+    fixed and percentage coupons from `/admin` covering minimum subtotal, cap,
+    total/per-customer limits, active dates, and disabled states.
+  - Sign in as a customer, add an in-stock variant to the cart, complete
+    `/checkout`, and confirm `/payment/{orderNumber}` shows the pending order.
+  - Confirm pending order creation increases variant `reservedStock`, prevents
+    oversell, reserves coupon usage, and expiry releases stock/coupon
+    reservation exactly once.
+- Commit:
+  - `c6564d6`.
 
 ### Task 05: Storefront Catalog and Cart
 
@@ -147,4 +184,4 @@ This file is the shared progress log for future Codex threads. Update it at the 
 
 ## Next Task
 
-Start `plan/06-checkout-orders-coupons.md` in a new Codex thread after Task 05 is committed and pushed.
+Start `plan/07-xendit-payments-webhooks.md` in a new Codex thread after Task 06 is committed and pushed.

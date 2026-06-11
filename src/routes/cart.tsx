@@ -198,9 +198,9 @@ function Cart() {
             </div>
           </dl>
           {cart.canCheckout ? (
-            <button type="button" disabled>
-              Checkout coming next
-            </button>
+            <Link to="/checkout" className="primary-link">
+              Checkout
+            </Link>
           ) : (
             <p className="cart-warning">
               Resolve unavailable items before checkout.

@@ -377,10 +377,17 @@ export default defineSchema({
     profileId: v.optional(v.id('profiles')),
     email: v.string(),
     discountAmount: v.number(),
+    status: v.union(
+      v.literal('reserved'),
+      v.literal('consumed'),
+      v.literal('released'),
+    ),
     redeemedAt: v.number(),
+    updatedAt: v.number(),
   })
     .index('by_coupon', ['couponId'])
     .index('by_order', ['orderId'])
+    .index('by_status', ['status'])
     .index('by_coupon_profile', ['couponId', 'profileId'])
     .index('by_coupon_email', ['couponId', 'email']),
 

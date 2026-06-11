@@ -8,6 +8,7 @@ import {
   assertMoneyAmount,
   assertNonNegativeQuantity,
   assertValidSlug,
+  COUPON_TYPES,
   defaultHomepageContent,
   defaultSiteSettings,
   DEFAULT_HOME_CONTENT_KEY,
@@ -28,6 +29,8 @@ const contentStatus = v.union(
   v.literal('published'),
   v.literal('archived'),
 )
+
+const couponType = v.union(v.literal('percentage'), v.literal('fixed_amount'))
 
 const optionValue = v.object({
   name: v.string(),
@@ -174,6 +177,7 @@ export const getWorkspace = query({
       homepageContent,
       recentActivity,
       recentInventoryMovements,
+      coupons,
     ] = await Promise.all([
       ctx.db.query('categories').collect(),
       ctx.db.query('products').collect(),
@@ -189,6 +193,7 @@ export const getWorkspace = query({
         .unique(),
       ctx.db.query('adminActivityLogs').order('desc').take(12),
       ctx.db.query('inventoryMovements').order('desc').take(12),
+      ctx.db.query('coupons').collect(),
     ])
 
     return {
@@ -209,6 +214,7 @@ export const getWorkspace = query({
       },
       recentActivity,
       recentInventoryMovements,
+      coupons: coupons.sort((a, b) => a.code.localeCompare(b.code)),
     }
   },
 })
@@ -816,5 +822,111 @@ export const updateHomepageContent = mutation({
     })
 
     return contentId
+  },
+})
+
+export const upsertCoupon = mutation({
+  args: {
+    id: v.optional(v.id('coupons')),
+    code: v.string(),
+    type: couponType,
+    value: v.number(),
+    currency: v.optional(v.string()),
+    minSubtotal: v.optional(v.number()),
+    maxDiscount: v.optional(v.number()),
+    usageLimit: v.optional(v.number()),
+    usageLimitPerCustomer: v.optional(v.number()),
+    startsAt: v.optional(v.number()),
+    endsAt: v.optional(v.number()),
+    isActive: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const actor = await requireAdminProfile(ctx)
+    const code = args.code.trim().toUpperCase()
+
+    if (!code) {
+      throw new ConvexError('Coupon code is required.')
+    }
+
+    if (!COUPON_TYPES.includes(args.type)) {
+      throw new ConvexError('Coupon type is invalid.')
+    }
+
+    assertMoneyAmount(args.value)
+    for (const amount of [args.minSubtotal, args.maxDiscount]) {
+      if (amount !== undefined) assertMoneyAmount(amount)
+    }
+    for (const limit of [args.usageLimit, args.usageLimitPerCustomer]) {
+      if (
+        limit !== undefined &&
+        (!Number.isInteger(limit) || limit <= 0)
+      ) {
+        throw new ConvexError('Coupon limits must be positive whole numbers.')
+      }
+    }
+    if (
+      args.startsAt !== undefined &&
+      args.endsAt !== undefined &&
+      args.startsAt >= args.endsAt
+    ) {
+      throw new ConvexError('Coupon start must be before its end.')
+    }
+
+    const existing = await ctx.db
+      .query('coupons')
+      .withIndex('by_code', (q) => q.eq('code', code))
+      .unique()
+    if (existing && existing._id !== args.id) {
+      throw new ConvexError('A coupon already uses this code.')
+    }
+
+    const now = Date.now()
+    const patch = {
+      code,
+      type: args.type,
+      value: args.value,
+      currency: args.currency?.trim().toUpperCase() || undefined,
+      minSubtotal: args.minSubtotal,
+      maxDiscount: args.maxDiscount,
+      usageLimit: args.usageLimit,
+      usageLimitPerCustomer: args.usageLimitPerCustomer,
+      startsAt: args.startsAt,
+      endsAt: args.endsAt,
+      isActive: args.isActive,
+      updatedAt: now,
+    }
+
+    if (args.id) {
+      const coupon = await ctx.db.get(args.id)
+      if (!coupon) throw new ConvexError('Coupon not found.')
+      await ctx.db.patch(args.id, patch)
+      await logActivity(ctx, actor, 'update', 'coupons', args.id)
+      return args.id
+    }
+
+    const couponId = await ctx.db.insert('coupons', {
+      ...patch,
+      redeemedCount: 0,
+      createdAt: now,
+    })
+    await logActivity(ctx, actor, 'create', 'coupons', couponId)
+    return couponId
+  },
+})
+
+export const setCouponActive = mutation({
+  args: { id: v.id('coupons'), isActive: v.boolean() },
+  handler: async (ctx, args) => {
+    const actor = await requireAdminProfile(ctx)
+    const coupon = await ctx.db.get(args.id)
+    if (!coupon) throw new ConvexError('Coupon not found.')
+    await ctx.db.patch(args.id, {
+      isActive: args.isActive,
+      updatedAt: Date.now(),
+    })
+    await logActivity(ctx, actor, 'update', 'coupons', args.id, {
+      isActive: args.isActive,
+    })
+    return args.id
   },
 })

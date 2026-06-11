@@ -13,11 +13,13 @@ import { Route as SetupRouteImport } from './routes/setup'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
+import { Route as PaymentOrderNumberRouteImport } from './routes/payment.$orderNumber'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 
 const SetupRoute = SetupRouteImport.update({
@@ -38,6 +40,11 @@ const ProductsRoute = ProductsRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CartRoute = CartRouteImport.update({
@@ -65,6 +72,11 @@ const ProductsSlugRoute = ProductsSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => ProductsRoute,
 } as any)
+const PaymentOrderNumberRoute = PaymentOrderNumberRouteImport.update({
+  id: '/payment/$orderNumber',
+  path: '/payment/$orderNumber',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiHealthRoute = ApiHealthRouteImport.update({
   id: '/api/health',
   path: '/api/health',
@@ -76,11 +88,13 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRoute
   '/admin': typeof AdminRoute
   '/cart': typeof CartRoute
+  '/checkout': typeof CheckoutRoute
   '/login': typeof LoginRoute
   '/products': typeof ProductsRouteWithChildren
   '/register': typeof RegisterRoute
   '/setup': typeof SetupRoute
   '/api/health': typeof ApiHealthRoute
+  '/payment/$orderNumber': typeof PaymentOrderNumberRoute
   '/products/$slug': typeof ProductsSlugRoute
 }
 export interface FileRoutesByTo {
@@ -88,11 +102,13 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRoute
   '/admin': typeof AdminRoute
   '/cart': typeof CartRoute
+  '/checkout': typeof CheckoutRoute
   '/login': typeof LoginRoute
   '/products': typeof ProductsRouteWithChildren
   '/register': typeof RegisterRoute
   '/setup': typeof SetupRoute
   '/api/health': typeof ApiHealthRoute
+  '/payment/$orderNumber': typeof PaymentOrderNumberRoute
   '/products/$slug': typeof ProductsSlugRoute
 }
 export interface FileRoutesById {
@@ -101,11 +117,13 @@ export interface FileRoutesById {
   '/account': typeof AccountRoute
   '/admin': typeof AdminRoute
   '/cart': typeof CartRoute
+  '/checkout': typeof CheckoutRoute
   '/login': typeof LoginRoute
   '/products': typeof ProductsRouteWithChildren
   '/register': typeof RegisterRoute
   '/setup': typeof SetupRoute
   '/api/health': typeof ApiHealthRoute
+  '/payment/$orderNumber': typeof PaymentOrderNumberRoute
   '/products/$slug': typeof ProductsSlugRoute
 }
 export interface FileRouteTypes {
@@ -115,11 +133,13 @@ export interface FileRouteTypes {
     | '/account'
     | '/admin'
     | '/cart'
+    | '/checkout'
     | '/login'
     | '/products'
     | '/register'
     | '/setup'
     | '/api/health'
+    | '/payment/$orderNumber'
     | '/products/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -127,11 +147,13 @@ export interface FileRouteTypes {
     | '/account'
     | '/admin'
     | '/cart'
+    | '/checkout'
     | '/login'
     | '/products'
     | '/register'
     | '/setup'
     | '/api/health'
+    | '/payment/$orderNumber'
     | '/products/$slug'
   id:
     | '__root__'
@@ -139,11 +161,13 @@ export interface FileRouteTypes {
     | '/account'
     | '/admin'
     | '/cart'
+    | '/checkout'
     | '/login'
     | '/products'
     | '/register'
     | '/setup'
     | '/api/health'
+    | '/payment/$orderNumber'
     | '/products/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -152,11 +176,13 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRoute
   AdminRoute: typeof AdminRoute
   CartRoute: typeof CartRoute
+  CheckoutRoute: typeof CheckoutRoute
   LoginRoute: typeof LoginRoute
   ProductsRoute: typeof ProductsRouteWithChildren
   RegisterRoute: typeof RegisterRoute
   SetupRoute: typeof SetupRoute
   ApiHealthRoute: typeof ApiHealthRoute
+  PaymentOrderNumberRoute: typeof PaymentOrderNumberRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -187,6 +213,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cart': {
@@ -224,6 +257,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsSlugRouteImport
       parentRoute: typeof ProductsRoute
     }
+    '/payment/$orderNumber': {
+      id: '/payment/$orderNumber'
+      path: '/payment/$orderNumber'
+      fullPath: '/payment/$orderNumber'
+      preLoaderRoute: typeof PaymentOrderNumberRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/health': {
       id: '/api/health'
       path: '/api/health'
@@ -251,11 +291,13 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRoute,
   AdminRoute: AdminRoute,
   CartRoute: CartRoute,
+  CheckoutRoute: CheckoutRoute,
   LoginRoute: LoginRoute,
   ProductsRoute: ProductsRouteWithChildren,
   RegisterRoute: RegisterRoute,
   SetupRoute: SetupRoute,
   ApiHealthRoute: ApiHealthRoute,
+  PaymentOrderNumberRoute: PaymentOrderNumberRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

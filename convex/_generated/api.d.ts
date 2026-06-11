@@ -11,6 +11,8 @@
 import type * as admin from "../admin.js";
 import type * as auth from "../auth.js";
 import type * as bootstrap from "../bootstrap.js";
+import type * as checkout from "../checkout.js";
+import type * as crons from "../crons.js";
 import type * as domain from "../domain.js";
 import type * as health from "../health.js";
 import type * as http from "../http.js";
@@ -27,6 +29,8 @@ declare const fullApi: ApiFromModules<{
   admin: typeof admin;
   auth: typeof auth;
   bootstrap: typeof bootstrap;
+  checkout: typeof checkout;
+  crons: typeof crons;
   domain: typeof domain;
   health: typeof health;
   http: typeof http;
