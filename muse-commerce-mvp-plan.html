@@ -1,0 +1,862 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Muse Commerce MVP Plan</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f7f9fc;
+        --surface: #ffffff;
+        --surface-alt: #eef4fb;
+        --text: #172033;
+        --muted: #5e6b7a;
+        --border: #d7e0ea;
+        --brand: #0f5f9f;
+        --brand-dark: #0b426f;
+        --accent: #13a37f;
+        --warning: #b7791f;
+        --danger: #c53030;
+        --code: #0f172a;
+        --code-bg: #eaf0f6;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        line-height: 1.6;
+      }
+
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 40px 20px 64px;
+      }
+
+      header.hero {
+        padding: 40px;
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        background:
+          linear-gradient(135deg, rgba(15, 95, 159, 0.13), transparent 45%),
+          var(--surface);
+        box-shadow: 0 20px 60px rgba(23, 32, 51, 0.08);
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        color: var(--brand-dark);
+        line-height: 1.2;
+      }
+
+      h1 {
+        margin: 0 0 12px;
+        font-size: clamp(2.25rem, 5vw, 4.25rem);
+        letter-spacing: -0.05em;
+      }
+
+      h2 {
+        margin: 0 0 18px;
+        font-size: clamp(1.6rem, 3vw, 2.35rem);
+        letter-spacing: -0.03em;
+      }
+
+      h3 {
+        margin: 26px 0 10px;
+        font-size: 1.35rem;
+      }
+
+      h4 {
+        margin: 18px 0 8px;
+        font-size: 1.05rem;
+      }
+
+      p {
+        margin: 0 0 14px;
+      }
+
+      a {
+        color: var(--brand);
+      }
+
+      .subtitle {
+        max-width: 820px;
+        color: var(--muted);
+        font-size: 1.13rem;
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 24px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--surface-alt);
+        color: var(--brand-dark);
+        font-weight: 650;
+        font-size: 0.92rem;
+      }
+
+      section {
+        margin-top: 28px;
+        padding: 30px;
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        background: var(--surface);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 18px;
+      }
+
+      .card {
+        padding: 20px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: #fff;
+      }
+
+      .card h3,
+      .card h4 {
+        margin-top: 0;
+      }
+
+      .decision-table,
+      .matrix {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 12px 0 6px;
+        overflow: hidden;
+        border-radius: 14px;
+      }
+
+      .decision-table th,
+      .decision-table td,
+      .matrix th,
+      .matrix td {
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        vertical-align: top;
+        text-align: left;
+      }
+
+      .decision-table th,
+      .matrix th {
+        background: var(--surface-alt);
+        color: var(--brand-dark);
+      }
+
+      ul,
+      ol {
+        margin-top: 8px;
+        padding-left: 24px;
+      }
+
+      li + li {
+        margin-top: 5px;
+      }
+
+      code,
+      pre {
+        color: var(--code);
+        background: var(--code-bg);
+        border-radius: 8px;
+      }
+
+      code {
+        padding: 0.15em 0.35em;
+      }
+
+      pre {
+        overflow: auto;
+        padding: 16px;
+        border: 1px solid var(--border);
+      }
+
+      .callout {
+        padding: 16px 18px;
+        border-left: 5px solid var(--brand);
+        border-radius: 14px;
+        background: var(--surface-alt);
+      }
+
+      .callout.warning {
+        border-left-color: var(--warning);
+      }
+
+      .callout.danger {
+        border-left-color: var(--danger);
+      }
+
+      .tag {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: rgba(19, 163, 127, 0.12);
+        color: #087157;
+        font-size: 0.82rem;
+        font-weight: 700;
+      }
+
+      .phase {
+        counter-increment: phase-counter;
+      }
+
+      .phase h3::before {
+        content: "Phase " counter(phase-counter) ": ";
+        color: var(--accent);
+      }
+
+      .phase-list {
+        counter-reset: phase-counter;
+      }
+
+      footer {
+        margin-top: 28px;
+        color: var(--muted);
+        text-align: center;
+        font-size: 0.95rem;
+      }
+
+      @media print {
+        body {
+          background: white;
+        }
+
+        main {
+          max-width: none;
+          padding: 0;
+        }
+
+        section,
+        header.hero {
+          break-inside: avoid;
+          box-shadow: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header class="hero">
+        <p class="pill">Muse Commerce &middot; Single-Brand MVP Plan</p>
+        <h1>White-label ecommerce, delivered as one fork/deployment per brand</h1>
+        <p class="subtitle">
+          This document captures the agreed product scope, architecture decisions,
+          data model, user flows, and implementation phases for a plain single-brand
+          ecommerce app built with TanStack Start, Convex, Convex Auth, Convex File
+          Storage, Xendit, and transactional email.
+        </p>
+        <div class="meta" aria-label="Key stack choices">
+          <span class="pill">TanStack Start</span>
+          <span class="pill">Convex</span>
+          <span class="pill">Convex Auth</span>
+          <span class="pill">Convex File Storage</span>
+          <span class="pill">Xendit</span>
+          <span class="pill">Vercel</span>
+        </div>
+      </header>
+
+      <section id="summary">
+        <h2>1. Product summary</h2>
+        <p>
+          Muse Commerce is a single-brand ecommerce application. Each brand receives
+          its own fork or deployment, so the app does not need multi-tenant routing,
+          tenant isolation, tenant-level billing, or in-app custom domain management
+          for the MVP.
+        </p>
+        <div class="callout">
+          <strong>MVP promise:</strong> a brand can manage products and content, customers
+          can log in and place paid orders, admins can manage inventory and orders,
+          payment is handled through Xendit, shipping is tracked manually with an
+          airwaybill number, and customers receive email notifications.
+        </div>
+      </section>
+
+      <section id="decisions">
+        <h2>2. Finalized decisions</h2>
+        <table class="decision-table">
+          <thead>
+            <tr>
+              <th>Area</th>
+              <th>Decision</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Deployment model</td>
+              <td>Single brand per fork/deployment.</td>
+            </tr>
+            <tr>
+              <td>Frontend/fullstack framework</td>
+              <td>TanStack Start.</td>
+            </tr>
+            <tr>
+              <td>Backend/database</td>
+              <td>Convex.</td>
+            </tr>
+            <tr>
+              <td>Authentication</td>
+              <td>Convex Auth.</td>
+            </tr>
+            <tr>
+              <td>File storage</td>
+              <td>Convex File Storage for logos, banners, product images, and other media.</td>
+            </tr>
+            <tr>
+              <td>Hosting</td>
+              <td>Vercel for now.</td>
+            </tr>
+            <tr>
+              <td>Payment gateway</td>
+              <td>Xendit.</td>
+            </tr>
+            <tr>
+              <td>Shipping</td>
+              <td>Free shipping for MVP. No courier API integration.</td>
+            </tr>
+            <tr>
+              <td>Fulfillment tracking</td>
+              <td>Admin manually enters courier name and airwaybill number, then marks order as <code>in_delivery</code>.</td>
+            </tr>
+            <tr>
+              <td>Checkout mode</td>
+              <td>No guest checkout. Customers must log in before checkout.</td>
+            </tr>
+            <tr>
+              <td>Roles</td>
+              <td><code>superadmin</code>, <code>admin</code>, and <code>customer</code>.</td>
+            </tr>
+            <tr>
+              <td>Website builder</td>
+              <td>Fixed layout. Admins can edit text and images only.</td>
+            </tr>
+            <tr>
+              <td>Target vertical</td>
+              <td>Plain/general ecommerce.</td>
+            </tr>
+            <tr>
+              <td>Inventory reservation</td>
+              <td>Deduct stock when order is created.</td>
+            </tr>
+            <tr>
+              <td>Inventory restoration</td>
+              <td>Restore stock when order is cancelled, payment fails, or payment expires.</td>
+            </tr>
+            <tr>
+              <td>Pending payment expiry</td>
+              <td>Default 1 hour, editable in admin settings.</td>
+            </tr>
+            <tr>
+              <td>Coupons</td>
+              <td>Included in MVP.</td>
+            </tr>
+            <tr>
+              <td>Refunds</td>
+              <td>Manual-only for MVP. Admin can record/reflected status, but no automated refund API initially.</td>
+            </tr>
+            <tr>
+              <td>Notifications</td>
+              <td>Email notifications instead of WhatsApp integration.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="scope">
+        <h2>3. MVP scope</h2>
+        <div class="grid">
+          <article class="card">
+            <h3>Storefront</h3>
+            <ul>
+              <li>Homepage with fixed layout and editable copy/images.</li>
+              <li>Product catalog.</li>
+              <li>Product detail page.</li>
+              <li>Cart.</li>
+              <li>Login and registration.</li>
+              <li>Checkout for logged-in customers only.</li>
+              <li>Payment waiting/invoice page.</li>
+              <li>Customer account and order history.</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Admin dashboard</h3>
+            <ul>
+              <li>Dashboard overview.</li>
+              <li>Product, category, variant, and inventory management.</li>
+              <li>Order management.</li>
+              <li>Manual shipment/airwaybill entry.</li>
+              <li>Customer management.</li>
+              <li>Coupon management.</li>
+              <li>Content and media editing.</li>
+              <li>Email settings/templates.</li>
+              <li>Admin user management for superadmin only.</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Commerce</h3>
+            <ul>
+              <li>Xendit invoice/payment creation.</li>
+              <li>Xendit webhook handling.</li>
+              <li>Free shipping.</li>
+              <li>Stock deduction on order creation.</li>
+              <li>Editable pending payment expiry, default 1 hour.</li>
+              <li>Stock restoration on cancelled, failed, or expired payment.</li>
+              <li>Manual refunds only.</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Notifications</h3>
+            <ul>
+              <li>Invoice created email.</li>
+              <li>Payment confirmed email.</li>
+              <li>Payment failed/expired email.</li>
+              <li>Order processing email.</li>
+              <li>Order in delivery email with airwaybill.</li>
+              <li>Order delivered email.</li>
+              <li>Order cancelled email.</li>
+              <li>Optional admin email for paid order and low stock.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="email-options">
+        <h2>4. Email provider options</h2>
+        <p>
+          The MVP needs transactional email for invoices and order notifications.
+          The implementation should hide provider-specific logic behind a small
+          internal email module so the provider can be changed later.
+        </p>
+        <table class="matrix">
+          <thead>
+            <tr>
+              <th>Provider</th>
+              <th>Best for</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Resend</strong> <span class="tag">recommended MVP</span></td>
+              <td>Fast developer experience and simple transactional email.</td>
+              <td>Good default choice for a new app. Easy API, straightforward setup, and works well with React-style email templates if desired.</td>
+            </tr>
+            <tr>
+              <td><strong>Postmark</strong></td>
+              <td>High-quality transactional email deliverability.</td>
+              <td>Strong option if reliability and transactional-only email are the main priorities.</td>
+            </tr>
+            <tr>
+              <td><strong>SendGrid</strong></td>
+              <td>Broad email platform features and larger ecosystem.</td>
+              <td>Powerful but may be heavier than needed for MVP transactional emails.</td>
+            </tr>
+            <tr>
+              <td><strong>Mailgun</strong></td>
+              <td>Developer-oriented email sending and domain control.</td>
+              <td>Good option if the team already uses it or wants flexible email APIs.</td>
+            </tr>
+            <tr>
+              <td><strong>Amazon SES</strong></td>
+              <td>Low-cost high-volume sending.</td>
+              <td>Cost-effective but has more setup and operational overhead than the simpler providers.</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout">
+          <strong>Recommendation:</strong> use Resend for the MVP unless there is an
+          existing provider preference. Keep the email module provider-agnostic so
+          Postmark, SendGrid, Mailgun, or SES can be swapped in later.
+        </div>
+      </section>
+
+      <section id="roles">
+        <h2>5. Roles and permissions</h2>
+        <table class="matrix">
+          <thead>
+            <tr>
+              <th>Capability</th>
+              <th>Superadmin</th>
+              <th>Admin</th>
+              <th>Customer</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Manage products/categories/variants</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td>Manage orders and shipments</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>Own orders only</td>
+            </tr>
+            <tr>
+              <td>Manage inventory</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td>Manage coupons</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>Redeem valid coupons only</td>
+            </tr>
+            <tr>
+              <td>Edit site content/images</td>
+              <td>Yes</td>
+              <td>Yes, unless later restricted</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td>Manage email/payment/system settings</td>
+              <td>Yes</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td>Manage admin users</td>
+              <td>Yes</td>
+              <td>No</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td>Checkout</td>
+              <td>As customer only if desired</td>
+              <td>As customer only if desired</td>
+              <td>Yes</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="flows">
+        <h2>6. Core user flows</h2>
+        <h3>Customer checkout flow</h3>
+        <ol>
+          <li>Customer registers or logs in.</li>
+          <li>Customer adds products/variants to cart.</li>
+          <li>Customer opens checkout and confirms shipping/contact details.</li>
+          <li>System validates stock and coupon eligibility.</li>
+          <li>System creates order with <code>pending_payment</code> status.</li>
+          <li>System deducts inventory immediately.</li>
+          <li>System schedules expiry using the editable setting, default 1 hour.</li>
+          <li>System creates Xendit invoice and stores invoice URL/reference.</li>
+          <li>System sends invoice email.</li>
+          <li>Customer pays through Xendit.</li>
+          <li>Xendit webhook confirms payment and updates the order.</li>
+          <li>System sends payment confirmation email.</li>
+        </ol>
+
+        <h3>Pending payment expiry flow</h3>
+        <ol>
+          <li>Scheduled job runs after the configured expiry duration.</li>
+          <li>If order is still <code>pending_payment</code>, mark payment as <code>expired</code>.</li>
+          <li>Mark order as <code>payment_failed</code> or <code>cancelled</code>.</li>
+          <li>Restore inventory using inventory movement records.</li>
+          <li>Send payment expired email.</li>
+        </ol>
+
+        <h3>Manual shipping flow</h3>
+        <ol>
+          <li>Admin opens a paid order.</li>
+          <li>Admin marks order as <code>processing</code> when preparing the package.</li>
+          <li>Admin enters courier name and airwaybill number.</li>
+          <li>Admin clicks submit/mark as in delivery.</li>
+          <li>System creates or updates shipment record.</li>
+          <li>System changes fulfillment status to <code>in_delivery</code>.</li>
+          <li>System sends shipment email to customer.</li>
+          <li>Admin can later mark the order as <code>delivered</code>.</li>
+        </ol>
+      </section>
+
+      <section id="statuses">
+        <h2>7. Status model</h2>
+        <div class="grid">
+          <article class="card">
+            <h3>Order status</h3>
+            <ul>
+              <li><code>pending_payment</code></li>
+              <li><code>paid</code></li>
+              <li><code>processing</code></li>
+              <li><code>in_delivery</code></li>
+              <li><code>delivered</code></li>
+              <li><code>cancelled</code></li>
+              <li><code>payment_failed</code></li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Payment status</h3>
+            <ul>
+              <li><code>pending</code></li>
+              <li><code>paid</code></li>
+              <li><code>failed</code></li>
+              <li><code>expired</code></li>
+              <li><code>refunded</code> for manual record only</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Fulfillment status</h3>
+            <ul>
+              <li><code>unfulfilled</code></li>
+              <li><code>processing</code></li>
+              <li><code>in_delivery</code></li>
+              <li><code>delivered</code></li>
+              <li><code>cancelled</code></li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="data-model">
+        <h2>8. Convex data model draft</h2>
+        <p>
+          Because this is a single-brand deployment, most records do not need a
+          <code>tenantId</code>. If the product later becomes multi-tenant, adding tenant
+          ownership will require a planned migration.
+        </p>
+        <pre><code>users / auth tables
+profiles
+siteSettings
+siteContent
+mediaAssets
+categories
+products
+productVariants
+inventoryMovements
+carts
+cartItems
+orders
+orderItems
+payments
+shipments
+coupons
+couponRedemptions
+emailTemplates
+emailEvents</code></pre>
+
+        <h3>Important model notes</h3>
+        <ul>
+          <li><code>siteSettings</code> should include store name, logo, favicon, support email, SEO fields, free-shipping setting, and editable pending payment expiry minutes.</li>
+          <li><code>siteContent</code> should store fixed-layout editable content such as hero title, hero subtitle, hero image, about text, footer text, and homepage banners.</li>
+          <li><code>productVariants</code> should support flexible attributes such as size, color, flavor, package size, or other plain ecommerce options.</li>
+          <li><code>inventoryMovements</code> should be append-only where possible so stock deductions/restorations are auditable.</li>
+          <li><code>payments</code> should store Xendit invoice identifiers, invoice URL, amount, status, and webhook metadata.</li>
+          <li><code>shipments</code> should store courier name, airwaybill number, shipping status, shipped date, delivered date, and admin user reference.</li>
+          <li><code>emailEvents</code> should record attempted/sent/failed notifications for debugging.</li>
+        </ul>
+      </section>
+
+      <section id="coupon-scope">
+        <h2>9. Coupon MVP scope</h2>
+        <p>Coupons are included in the MVP, but should stay simple.</p>
+        <ul>
+          <li>Coupon code.</li>
+          <li>Fixed discount amount.</li>
+          <li>Percentage discount.</li>
+          <li>Minimum order amount.</li>
+          <li>Maximum discount cap for percentage coupons.</li>
+          <li>Usage limit.</li>
+          <li>Per-customer usage limit, optional.</li>
+          <li>Active date range.</li>
+          <li>Enabled/disabled status.</li>
+        </ul>
+        <div class="callout warning">
+          <strong>Out of scope for MVP:</strong> stackable coupons, product/category-specific
+          coupon rules, buy-X-get-Y, customer segment targeting, and automatic campaigns.
+        </div>
+      </section>
+
+      <section id="routes">
+        <h2>10. Suggested routes/screens</h2>
+        <div class="grid">
+          <article class="card">
+            <h3>Public/customer routes</h3>
+            <pre><code>/
+/products
+/products/$slug
+/cart
+/login
+/register
+/checkout
+/payment/$orderNumber
+/account
+/account/orders
+/account/orders/$orderNumber</code></pre>
+          </article>
+          <article class="card">
+            <h3>Admin routes</h3>
+            <pre><code>/admin
+/admin/products
+/admin/products/new
+/admin/products/$id
+/admin/categories
+/admin/orders
+/admin/orders/$id
+/admin/customers
+/admin/customers/$id
+/admin/coupons
+/admin/content
+/admin/settings
+/admin/email
+/admin/admins</code></pre>
+          </article>
+          <article class="card">
+            <h3>Server/API routes</h3>
+            <pre><code>/api/xendit/webhook
+/api/health</code></pre>
+            <p>
+              Additional server routes can be added for email webhooks or file helper
+              endpoints if needed, but Convex functions should own core business logic.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="phases">
+        <h2>11. Implementation phases</h2>
+        <div class="phase-list">
+          <article class="phase card">
+            <h3>Foundation</h3>
+            <ul>
+              <li>Initialize TanStack Start app structure.</li>
+              <li>Set up Convex and Convex Auth.</li>
+              <li>Create role model: <code>superadmin</code>, <code>admin</code>, <code>customer</code>.</li>
+              <li>Create protected route guards for admin and customer areas.</li>
+              <li>Set up Convex File Storage upload flow.</li>
+              <li>Create base UI shell for storefront and admin.</li>
+            </ul>
+          </article>
+          <article class="phase card">
+            <h3>Catalog and content</h3>
+            <ul>
+              <li>Categories.</li>
+              <li>Products.</li>
+              <li>Variants.</li>
+              <li>Product images.</li>
+              <li>Inventory editing.</li>
+              <li>Fixed homepage content editing.</li>
+              <li>Public catalog and product detail pages.</li>
+            </ul>
+          </article>
+          <article class="phase card">
+            <h3>Cart, checkout, and coupons</h3>
+            <ul>
+              <li>Logged-in cart.</li>
+              <li>Checkout form.</li>
+              <li>Free shipping calculation.</li>
+              <li>Coupon creation and redemption.</li>
+              <li>Order creation.</li>
+              <li>Stock deduction and inventory movement recording.</li>
+              <li>Editable pending payment expiry setting, default 1 hour.</li>
+            </ul>
+          </article>
+          <article class="phase card">
+            <h3>Xendit and email</h3>
+            <ul>
+              <li>Create Xendit invoice/payment.</li>
+              <li>Store invoice URL and payment references.</li>
+              <li>Implement Xendit webhook route and verification.</li>
+              <li>Update order/payment statuses from webhook.</li>
+              <li>Restore stock on failed/expired/cancelled orders.</li>
+              <li>Integrate email provider, recommended Resend.</li>
+              <li>Send invoice and payment status emails.</li>
+            </ul>
+          </article>
+          <article class="phase card">
+            <h3>Order management and fulfillment</h3>
+            <ul>
+              <li>Admin order list and filters.</li>
+              <li>Admin order detail page.</li>
+              <li>Mark order as processing.</li>
+              <li>Enter courier and airwaybill number.</li>
+              <li>Mark order as in delivery.</li>
+              <li>Mark order as delivered.</li>
+              <li>Manual refund status recording.</li>
+              <li>Shipment and order status emails.</li>
+            </ul>
+          </article>
+          <article class="phase card">
+            <h3>Launch readiness</h3>
+            <ul>
+              <li>Seed/demo data.</li>
+              <li>Vercel environment variables.</li>
+              <li>Xendit sandbox test flow.</li>
+              <li>Email sandbox/test flow.</li>
+              <li>Mobile responsive pass.</li>
+              <li>Basic SEO metadata.</li>
+              <li>Admin/customer permission testing.</li>
+              <li>Order expiry and stock restoration testing.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="out-of-scope">
+        <h2>12. Explicitly out of scope for MVP</h2>
+        <ul>
+          <li>Multi-tenant SaaS architecture.</li>
+          <li>In-app custom domain management.</li>
+          <li>Guest checkout.</li>
+          <li>Courier API integration and automatic shipping rates.</li>
+          <li>WhatsApp integration/automation.</li>
+          <li>Marketplace sync for Shopee, TikTok Shop, or Tokopedia.</li>
+          <li>Drag-and-drop page builder.</li>
+          <li>Advanced analytics and customer segmentation.</li>
+          <li>Loyalty points, referrals, and membership tiers.</li>
+          <li>Subscription commerce and auto-billing.</li>
+          <li>Automated Xendit refunds.</li>
+          <li>Advanced permission matrix beyond the three roles.</li>
+        </ul>
+      </section>
+
+      <section id="risks">
+        <h2>13. Key risks and design notes</h2>
+        <div class="callout danger">
+          <strong>Inventory locking risk:</strong> stock is deducted when the order is
+          created. If a customer does not pay, the product can remain unavailable.
+          The 1-hour editable expiry job is mandatory for the MVP, not optional.
+        </div>
+        <h3>Other notes</h3>
+        <ul>
+          <li>Keep payment secrets and email provider API keys in environment variables, not editable admin fields.</li>
+          <li>Make Xendit webhook handling idempotent so duplicate webhooks do not double-update orders or inventory.</li>
+          <li>Store raw webhook metadata or event IDs for debugging, but avoid storing unnecessary sensitive data.</li>
+          <li>Use append-only inventory movements where possible so stock corrections can be audited.</li>
+          <li>Keep email sending behind a provider abstraction to allow switching providers later.</li>
+          <li>Because this is single-brand, adding multi-tenant support later should be treated as a separate migration project.</li>
+        </ul>
+      </section>
+
+      <footer>
+        <p>Prepared as the working MVP plan for continuing implementation in Codex.</p>
+      </footer>
+    </main>
+  </body>
+</html>
