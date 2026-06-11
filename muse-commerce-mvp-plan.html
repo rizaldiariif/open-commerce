@@ -306,7 +306,7 @@
           <tbody>
             <tr>
               <td>Deployment model</td>
-              <td>Single brand per fork/deployment.</td>
+              <td>Single brand per fork/deployment. Brand-specific runtime values live in environment variables and seed/settings records, not in multi-tenant database tables.</td>
             </tr>
             <tr>
               <td>Frontend/fullstack framework</td>
@@ -338,7 +338,7 @@
             </tr>
             <tr>
               <td>Fulfillment tracking</td>
-              <td>Admin manually enters courier name and airwaybill number, then marks order as <code>in_delivery</code>.</td>
+              <td>Admin manually enters courier name and airwaybill number, then marks fulfillment as <code>in_delivery</code>.</td>
             </tr>
             <tr>
               <td>Checkout mode</td>
@@ -374,7 +374,7 @@
             </tr>
             <tr>
               <td>Refunds</td>
-              <td>Manual-only for MVP. Admin can record/reflected status, but no automated refund API initially.</td>
+              <td>Manual-only for MVP. Admin can record refund status and notes, but no automated refund API initially.</td>
             </tr>
             <tr>
               <td>Notifications</td>
@@ -410,7 +410,7 @@
               <li>Customer management.</li>
               <li>Coupon management.</li>
               <li>Content and media editing.</li>
-              <li>Email settings/templates.</li>
+              <li>Email settings/templates for superadmin only.</li>
               <li>Admin user management for superadmin only.</li>
             </ul>
           </article>
@@ -531,7 +531,7 @@
             <tr>
               <td>Edit site content/images</td>
               <td>Yes</td>
-              <td>Yes, unless later restricted</td>
+              <td>Yes</td>
               <td>No</td>
             </tr>
             <tr>
@@ -548,8 +548,8 @@
             </tr>
             <tr>
               <td>Checkout</td>
-              <td>As customer only if desired</td>
-              <td>As customer only if desired</td>
+              <td>No admin checkout; create a separate customer account when testing storefront purchases</td>
+              <td>No admin checkout; create a separate customer account when testing storefront purchases</td>
               <td>Yes</td>
             </tr>
           </tbody>
@@ -564,35 +564,49 @@
           <li>Customer adds products/variants to cart.</li>
           <li>Customer opens checkout and confirms shipping/contact details.</li>
           <li>System validates stock and coupon eligibility.</li>
-          <li>System creates order with <code>pending_payment</code> status.</li>
-          <li>System deducts inventory immediately.</li>
-          <li>System schedules expiry using the editable setting, default 1 hour.</li>
+          <li>System creates order with <code>pending_payment</code> order status and <code>unfulfilled</code> fulfillment status.</li>
+          <li>System deducts inventory immediately in the same Convex mutation that creates the order, using inventory movement records to prevent overselling.</li>
+          <li>System reserves coupon redemption against the pending order if a coupon is used.</li>
           <li>System creates Xendit invoice and stores invoice URL/reference.</li>
+          <li>If Xendit invoice creation fails, system marks the order as <code>payment_failed</code>, restores inventory, releases coupon reservation, and shows a retryable checkout error.</li>
+          <li>System schedules expiry using the editable setting, default 1 hour.</li>
           <li>System sends invoice email.</li>
           <li>Customer pays through Xendit.</li>
-          <li>Xendit webhook confirms payment and updates the order.</li>
+          <li>Xendit webhook confirms payment and updates the order/payment status.</li>
           <li>System sends payment confirmation email.</li>
         </ol>
 
         <h3>Pending payment expiry flow</h3>
         <ol>
-          <li>Scheduled job runs after the configured expiry duration.</li>
+          <li>Use a Convex scheduled function per order via <code>scheduler.runAfter</code>, plus a periodic cleanup job as a safety net for missed or delayed expiries.</li>
           <li>If order is still <code>pending_payment</code>, mark payment as <code>expired</code>.</li>
-          <li>Mark order as <code>payment_failed</code> or <code>cancelled</code>.</li>
+          <li>Mark order as <code>payment_failed</code>. Reserve <code>cancelled</code> for customer/admin cancellation before payment or admin cancellation after review.</li>
           <li>Restore inventory using inventory movement records.</li>
+          <li>Release any pending coupon reservation.</li>
           <li>Send payment expired email.</li>
         </ol>
 
         <h3>Manual shipping flow</h3>
         <ol>
           <li>Admin opens a paid order.</li>
-          <li>Admin marks order as <code>processing</code> when preparing the package.</li>
+          <li>Admin marks fulfillment as <code>processing</code> when preparing the package.</li>
           <li>Admin enters courier name and airwaybill number.</li>
           <li>Admin clicks submit/mark as in delivery.</li>
           <li>System creates or updates shipment record.</li>
           <li>System changes fulfillment status to <code>in_delivery</code>.</li>
           <li>System sends shipment email to customer.</li>
-          <li>Admin can later mark the order as <code>delivered</code>.</li>
+          <li>Admin can later mark fulfillment as <code>delivered</code>.</li>
+        </ol>
+
+        <h3>Xendit webhook flow</h3>
+        <ol>
+          <li>Verify the Xendit webhook token/signature before reading the payload.</li>
+          <li>Find the payment by Xendit invoice ID or external ID.</li>
+          <li>Ignore duplicate events that have already been processed.</li>
+          <li>Reject or flag events where amount, currency, or order reference does not match the stored payment.</li>
+          <li>Map paid/settled events to payment <code>paid</code> and order <code>paid</code>.</li>
+          <li>Map failed events to payment <code>failed</code> and order <code>payment_failed</code>, then restore inventory and release coupon reservation.</li>
+          <li>Map expired events to payment <code>expired</code> and order <code>payment_failed</code>, then restore inventory and release coupon reservation.</li>
         </ol>
       </section>
 
@@ -604,12 +618,13 @@
             <ul>
               <li><code>pending_payment</code></li>
               <li><code>paid</code></li>
-              <li><code>processing</code></li>
-              <li><code>in_delivery</code></li>
-              <li><code>delivered</code></li>
               <li><code>cancelled</code></li>
               <li><code>payment_failed</code></li>
             </ul>
+            <p>
+              Order status represents commercial/payment lifecycle only. Delivery
+              progress lives in <code>fulfillmentStatus</code>.
+            </p>
           </article>
           <article class="card">
             <h3>Payment status</h3>
@@ -652,12 +667,14 @@ productVariants
 inventoryMovements
 carts
 cartItems
+customerAddresses
 orders
 orderItems
 payments
 shipments
 coupons
 couponRedemptions
+adminActivityLogs
 emailTemplates
 emailEvents</code></pre>
 
@@ -667,9 +684,14 @@ emailEvents</code></pre>
           <li><code>siteContent</code> should store fixed-layout editable content such as hero title, hero subtitle, hero image, about text, footer text, and homepage banners.</li>
           <li><code>productVariants</code> should support flexible attributes such as size, color, flavor, package size, or other plain ecommerce options.</li>
           <li><code>inventoryMovements</code> should be append-only where possible so stock deductions/restorations are auditable.</li>
+          <li><code>customerAddresses</code> should store recipient name, phone number, address lines, city, province/state, postal code, and optional notes.</li>
+          <li><code>orders</code> should snapshot customer contact, shipping address, line item names/prices, discount, totals, order status, fulfillment status, and expiry timestamp so historical orders are stable even if products change later.</li>
           <li><code>payments</code> should store Xendit invoice identifiers, invoice URL, amount, status, and webhook metadata.</li>
           <li><code>shipments</code> should store courier name, airwaybill number, shipping status, shipped date, delivered date, and admin user reference.</li>
+          <li><code>adminActivityLogs</code> should record important admin actions such as order status changes, shipment updates, manual refunds, inventory edits, and settings changes.</li>
           <li><code>emailEvents</code> should record attempted/sent/failed notifications for debugging.</li>
+          <li>Convex Auth should create the first <code>superadmin</code> through a one-time seed or bootstrap mutation guarded by a setup token environment variable. After the first superadmin exists, bootstrap must be disabled.</li>
+          <li>Media assets should use soft deletion by default. Old product/content images can be hidden from the UI immediately, then cleaned up later by an admin-only maintenance job after confirming they are no longer referenced.</li>
         </ul>
       </section>
 
@@ -687,6 +709,11 @@ emailEvents</code></pre>
           <li>Active date range.</li>
           <li>Enabled/disabled status.</li>
         </ul>
+        <p>
+          Coupon usage should be reserved when a pending order is created, consumed
+          when payment becomes <code>paid</code>, and released if payment fails, expires,
+          or the order is cancelled before payment.
+        </p>
         <div class="callout warning">
           <strong>Out of scope for MVP:</strong> stackable coupons, product/category-specific
           coupon rules, buy-X-get-Y, customer segment targeting, and automatic campaigns.
@@ -794,10 +821,10 @@ emailEvents</code></pre>
             <ul>
               <li>Admin order list and filters.</li>
               <li>Admin order detail page.</li>
-              <li>Mark order as processing.</li>
+              <li>Mark fulfillment as processing.</li>
               <li>Enter courier and airwaybill number.</li>
-              <li>Mark order as in delivery.</li>
-              <li>Mark order as delivered.</li>
+              <li>Mark fulfillment as in delivery.</li>
+              <li>Mark fulfillment as delivered.</li>
               <li>Manual refund status recording.</li>
               <li>Shipment and order status emails.</li>
             </ul>
