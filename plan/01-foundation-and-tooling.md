@@ -3,7 +3,7 @@
 ## Status
 
 - Complete as of 2026-06-11.
-- Commit: pending.
+- Commit: `bf7ad8b4123b167b00efa30c70755b93af978b87`.
 - Notes:
   - Scaffolded the TanStack Start app directly in this repository.
   - Linked a Convex cloud development deployment through the local CLI.

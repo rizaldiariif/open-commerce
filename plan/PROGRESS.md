@@ -36,7 +36,7 @@ This file is the shared progress log for future Codex threads. Update it at the 
 - Manual test:
   - Run `npm run dev` and visit `/`, `/products`, `/cart`, `/login`, `/register`, `/admin`, and `/api/health`.
 - Commit:
-  - Pending.
+  - `bf7ad8b4123b167b00efa30c70755b93af978b87`.
 
 ### Planning Setup
 
