@@ -64,6 +64,8 @@ This file is the shared progress log for future Codex threads. Update it at the 
     exactly once.
   - Send mismatched amount, currency, or external ID payloads and confirm
     rejected webhook events are stored without state changes.
+- Commit:
+  - `f0e205a`.
 
 ### Task 06: Checkout, Orders, and Coupons
 
