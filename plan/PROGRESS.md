@@ -18,8 +18,48 @@ This file is the shared progress log for future Codex threads. Update it at the 
 - Task 06 checkout/orders/coupons is complete and ready for manual review.
 - Task 07 Xendit payments/webhooks is complete and ready for manual review.
 - Task 08 email notifications is complete and ready for manual review.
+- Task 09 order management and fulfillment is complete and ready for manual
+  review.
 
 ## Task Log
+
+### Task 09: Order Management and Fulfillment
+
+- Status: complete
+- Started: 2026-06-11
+- Completed: 2026-06-11
+- Summary:
+  - Added admin order list/detail routes with search and fulfillment filters.
+  - Added customer account order history/detail routes guarded to the signed-in
+    customer's own orders.
+  - Added shipment mutations for paid orders, including courier, service,
+    airwaybill, tracking URL, shipped/delivered dates, fulfillment status, and
+    admin actor reference.
+  - Added fulfillment emails for processing, in-delivery, and delivered status
+    updates.
+  - Added manual refund recording with local payment/order status updates,
+    refund ledger records, and admin activity logs without calling Xendit refund
+    APIs.
+- Build:
+  - Passed: `npm run build`.
+- Additional checks:
+  - Passed: `npx convex codegen`.
+- Docs updated:
+  - Updated `README.md`.
+  - Updated `plan/09-order-management-fulfillment.md`.
+- Manual test:
+  - After all plan tasks are complete, sign in as admin and confirm
+    `/admin/orders` search/filter behavior.
+  - Open a paid order, move fulfillment from processing to in delivery to
+    delivered, and confirm `orderStatus` remains `paid`.
+  - Confirm courier/airwaybill/shipped/delivered fields display for both admin
+    and the owning customer.
+  - Confirm fulfillment email attempts are logged for status updates.
+  - Record a manual refund and confirm local refund status/ledger/activity
+    changes without any Xendit refund API call.
+  - Sign in as a different customer and confirm the order detail is not visible.
+- Commit:
+  - `9531d1a`.
 
 ### Task 08: Email Notifications
 

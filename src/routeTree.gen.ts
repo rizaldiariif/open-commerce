@@ -21,6 +21,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
 import { Route as PaymentOrderNumberRouteImport } from './routes/payment.$orderNumber'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
+import { Route as AccountOrdersRouteImport } from './routes/account.orders'
+import { Route as AdminOrdersIdRouteImport } from './routes/admin.orders.$id'
+import { Route as AccountOrdersOrderNumberRouteImport } from './routes/account.orders.$orderNumber'
 
 const SetupRoute = SetupRouteImport.update({
   id: '/setup',
@@ -82,49 +86,82 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminOrdersRoute = AdminOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AccountOrdersRoute = AccountOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AdminOrdersIdRoute = AdminOrdersIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AdminOrdersRoute,
+} as any)
+const AccountOrdersOrderNumberRoute =
+  AccountOrdersOrderNumberRouteImport.update({
+    id: '/$orderNumber',
+    path: '/$orderNumber',
+    getParentRoute: () => AccountOrdersRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/account': typeof AccountRoute
-  '/admin': typeof AdminRoute
+  '/account': typeof AccountRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/login': typeof LoginRoute
   '/products': typeof ProductsRouteWithChildren
   '/register': typeof RegisterRoute
   '/setup': typeof SetupRoute
+  '/account/orders': typeof AccountOrdersRouteWithChildren
+  '/admin/orders': typeof AdminOrdersRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/payment/$orderNumber': typeof PaymentOrderNumberRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/account/orders/$orderNumber': typeof AccountOrdersOrderNumberRoute
+  '/admin/orders/$id': typeof AdminOrdersIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/account': typeof AccountRoute
-  '/admin': typeof AdminRoute
+  '/account': typeof AccountRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/login': typeof LoginRoute
   '/products': typeof ProductsRouteWithChildren
   '/register': typeof RegisterRoute
   '/setup': typeof SetupRoute
+  '/account/orders': typeof AccountOrdersRouteWithChildren
+  '/admin/orders': typeof AdminOrdersRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/payment/$orderNumber': typeof PaymentOrderNumberRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/account/orders/$orderNumber': typeof AccountOrdersOrderNumberRoute
+  '/admin/orders/$id': typeof AdminOrdersIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/account': typeof AccountRoute
-  '/admin': typeof AdminRoute
+  '/account': typeof AccountRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/login': typeof LoginRoute
   '/products': typeof ProductsRouteWithChildren
   '/register': typeof RegisterRoute
   '/setup': typeof SetupRoute
+  '/account/orders': typeof AccountOrdersRouteWithChildren
+  '/admin/orders': typeof AdminOrdersRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/payment/$orderNumber': typeof PaymentOrderNumberRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/account/orders/$orderNumber': typeof AccountOrdersOrderNumberRoute
+  '/admin/orders/$id': typeof AdminOrdersIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -138,9 +175,13 @@ export interface FileRouteTypes {
     | '/products'
     | '/register'
     | '/setup'
+    | '/account/orders'
+    | '/admin/orders'
     | '/api/health'
     | '/payment/$orderNumber'
     | '/products/$slug'
+    | '/account/orders/$orderNumber'
+    | '/admin/orders/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -152,9 +193,13 @@ export interface FileRouteTypes {
     | '/products'
     | '/register'
     | '/setup'
+    | '/account/orders'
+    | '/admin/orders'
     | '/api/health'
     | '/payment/$orderNumber'
     | '/products/$slug'
+    | '/account/orders/$orderNumber'
+    | '/admin/orders/$id'
   id:
     | '__root__'
     | '/'
@@ -166,15 +211,19 @@ export interface FileRouteTypes {
     | '/products'
     | '/register'
     | '/setup'
+    | '/account/orders'
+    | '/admin/orders'
     | '/api/health'
     | '/payment/$orderNumber'
     | '/products/$slug'
+    | '/account/orders/$orderNumber'
+    | '/admin/orders/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AccountRoute: typeof AccountRoute
-  AdminRoute: typeof AdminRoute
+  AccountRoute: typeof AccountRouteWithChildren
+  AdminRoute: typeof AdminRouteWithChildren
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
   LoginRoute: typeof LoginRoute
@@ -271,8 +320,81 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/orders': {
+      id: '/admin/orders'
+      path: '/orders'
+      fullPath: '/admin/orders'
+      preLoaderRoute: typeof AdminOrdersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/account/orders': {
+      id: '/account/orders'
+      path: '/orders'
+      fullPath: '/account/orders'
+      preLoaderRoute: typeof AccountOrdersRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/admin/orders/$id': {
+      id: '/admin/orders/$id'
+      path: '/$id'
+      fullPath: '/admin/orders/$id'
+      preLoaderRoute: typeof AdminOrdersIdRouteImport
+      parentRoute: typeof AdminOrdersRoute
+    }
+    '/account/orders/$orderNumber': {
+      id: '/account/orders/$orderNumber'
+      path: '/$orderNumber'
+      fullPath: '/account/orders/$orderNumber'
+      preLoaderRoute: typeof AccountOrdersOrderNumberRouteImport
+      parentRoute: typeof AccountOrdersRoute
+    }
   }
 }
+
+interface AccountOrdersRouteChildren {
+  AccountOrdersOrderNumberRoute: typeof AccountOrdersOrderNumberRoute
+}
+
+const AccountOrdersRouteChildren: AccountOrdersRouteChildren = {
+  AccountOrdersOrderNumberRoute: AccountOrdersOrderNumberRoute,
+}
+
+const AccountOrdersRouteWithChildren = AccountOrdersRoute._addFileChildren(
+  AccountOrdersRouteChildren,
+)
+
+interface AccountRouteChildren {
+  AccountOrdersRoute: typeof AccountOrdersRouteWithChildren
+}
+
+const AccountRouteChildren: AccountRouteChildren = {
+  AccountOrdersRoute: AccountOrdersRouteWithChildren,
+}
+
+const AccountRouteWithChildren =
+  AccountRoute._addFileChildren(AccountRouteChildren)
+
+interface AdminOrdersRouteChildren {
+  AdminOrdersIdRoute: typeof AdminOrdersIdRoute
+}
+
+const AdminOrdersRouteChildren: AdminOrdersRouteChildren = {
+  AdminOrdersIdRoute: AdminOrdersIdRoute,
+}
+
+const AdminOrdersRouteWithChildren = AdminOrdersRoute._addFileChildren(
+  AdminOrdersRouteChildren,
+)
+
+interface AdminRouteChildren {
+  AdminOrdersRoute: typeof AdminOrdersRouteWithChildren
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminOrdersRoute: AdminOrdersRouteWithChildren,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface ProductsRouteChildren {
   ProductsSlugRoute: typeof ProductsSlugRoute
@@ -288,8 +410,8 @@ const ProductsRouteWithChildren = ProductsRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AccountRoute: AccountRoute,
-  AdminRoute: AdminRoute,
+  AccountRoute: AccountRouteWithChildren,
+  AdminRoute: AdminRouteWithChildren,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
   LoginRoute: LoginRoute,

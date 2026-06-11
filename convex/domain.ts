@@ -46,6 +46,7 @@ export const ADMIN_ACTIVITY_ACTIONS = [
   'publish',
   'archive',
   'login',
+  'refund',
 ] as const
 export type AdminActivityAction = (typeof ADMIN_ACTIVITY_ACTIONS)[number]
 

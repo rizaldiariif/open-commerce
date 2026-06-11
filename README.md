@@ -55,6 +55,13 @@ The admin workspace at `/admin` includes catalog and content operations for:
   review
 - recent admin activity and inventory movement review
 
+Order operations live at `/admin/orders` and `/admin/orders/$id`. Admins can
+filter recent orders, inspect line items and shipment data, move paid orders
+through `processing`, `in_delivery`, and `delivered` fulfillment states, enter
+courier and airwaybill details, and record manual refunds. Manual refunds only
+update Muse Commerce order/payment records and activity logs; they do not call
+Xendit refund APIs.
+
 The public storefront includes:
 
 - editable homepage content from Convex site content/settings
@@ -67,6 +74,8 @@ The public storefront includes:
   selection, coupon entry, pending order creation, and Xendit invoice creation
 - `/payment/$orderNumber` for the payment handoff screen with Xendit invoice
   links and live order/payment status
+- `/account`, `/account/orders`, and `/account/orders/$orderNumber` for
+  customer-only order history and delivery details
 
 Pending checkout orders reserve stock and coupon capacity in Convex. Scheduled
 expiry and a recurring cleanup cron mark expired pending orders as
@@ -85,9 +94,10 @@ Transactional emails are sent through a provider abstraction backed by Resend
 for the MVP. Configure `RESEND_API_KEY` plus either `RESEND_FROM_EMAIL` or
 `EMAIL_FROM` in the Convex deployment environment. Invoice, payment confirmed,
 payment failed, payment expired, admin paid-order, and admin low-stock emails
-are attempted from the current payment lifecycle. Fulfillment templates are
-seeded for the order management task. Email attempts are logged in
-`emailEvents`, and failed sends do not roll back order or payment updates.
+are attempted from the current payment lifecycle. Fulfillment status emails are
+attempted when admins mark paid orders as processing, in delivery, or delivered.
+Email attempts are logged in `emailEvents`, and failed sends do not roll back
+order, payment, or fulfillment updates.
 
 Build and typecheck:
 

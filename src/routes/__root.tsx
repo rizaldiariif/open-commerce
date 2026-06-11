@@ -49,6 +49,9 @@ function RootComponent() {
             <Link to="/cart" activeProps={{ 'data-status': 'active' }}>
               Cart
             </Link>
+            <Link to="/account" activeProps={{ 'data-status': 'active' }}>
+              Account
+            </Link>
             <Link to="/setup" activeProps={{ 'data-status': 'active' }}>
               Setup
             </Link>

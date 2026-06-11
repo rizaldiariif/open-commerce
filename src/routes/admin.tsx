@@ -191,6 +191,9 @@ function AdminWorkspace({ isSuperadmin }: Readonly<{ isSuperadmin: boolean }>) {
           <span>
             <strong>{workspace.mediaAssets.length}</strong> media
           </span>
+          <Link to="/admin/orders" className="secondary-link">
+            Orders
+          </Link>
         </div>
       </header>
 

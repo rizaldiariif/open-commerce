@@ -357,6 +357,7 @@ export default defineSchema({
     service: v.optional(v.string()),
     trackingNumber: v.optional(v.string()),
     trackingUrl: v.optional(v.string()),
+    adminProfileId: v.optional(v.id('profiles')),
     status: v.union(
       v.literal('unfulfilled'),
       v.literal('processing'),
@@ -370,7 +371,20 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index('by_order', ['orderId'])
+    .index('by_admin', ['adminProfileId'])
     .index('by_status', ['status']),
+
+  manualRefunds: defineTable({
+    orderId: v.id('orders'),
+    paymentId: v.optional(v.id('payments')),
+    amount: v.number(),
+    currency: v.string(),
+    reason: v.optional(v.string()),
+    adminProfileId: v.id('profiles'),
+    createdAt: v.number(),
+  })
+    .index('by_order', ['orderId'])
+    .index('by_admin', ['adminProfileId']),
 
   coupons: defineTable({
     code: v.string(),
@@ -420,6 +434,7 @@ export default defineSchema({
       v.literal('publish'),
       v.literal('archive'),
       v.literal('login'),
+      v.literal('refund'),
     ),
     targetTable: v.string(),
     targetId: v.optional(v.string()),

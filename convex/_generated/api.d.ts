@@ -17,6 +17,7 @@ import type * as domain from "../domain.js";
 import type * as emails from "../emails.js";
 import type * as health from "../health.js";
 import type * as http from "../http.js";
+import type * as orders from "../orders.js";
 import type * as payments from "../payments.js";
 import type * as profiles from "../profiles.js";
 import type * as storefront from "../storefront.js";
@@ -38,6 +39,7 @@ declare const fullApi: ApiFromModules<{
   emails: typeof emails;
   health: typeof health;
   http: typeof http;
+  orders: typeof orders;
   payments: typeof payments;
   profiles: typeof profiles;
   storefront: typeof storefront;

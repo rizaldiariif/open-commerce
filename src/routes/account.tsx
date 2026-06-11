@@ -44,9 +44,14 @@ function Account() {
       <p className="eyebrow">Account</p>
       <h1>Your account</h1>
       <p>
-        Signed in as {access.profile.email}. Order history and address
-        management arrive with the checkout and order tasks.
+        Signed in as {access.profile.email}. Review order history and delivery
+        progress from your account workspace.
       </p>
+      <div className="action-row">
+        <Link to="/account/orders" className="primary-link">
+          View orders
+        </Link>
+      </div>
     </section>
   )
 }
