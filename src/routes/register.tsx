@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useAuthActions } from '@convex-dev/auth/react'
+import { useEffect, useState } from 'react'
+import { useAuthActions, useConvexAuth } from '@convex-dev/auth/react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useNavigate } from '@tanstack/react-router'
 import { useMutation } from 'convex/react'
@@ -13,9 +13,47 @@ export const Route = createFileRoute('/register')({
 function Register() {
   const navigate = useNavigate()
   const { signIn } = useAuthActions()
+  const { isAuthenticated, isLoading } = useConvexAuth()
   const ensureProfile = useMutation(api.profiles.ensureCurrentUserProfile)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [shouldCompleteSignup, setShouldCompleteSignup] = useState(false)
+
+  useEffect(() => {
+    if (!shouldCompleteSignup || isLoading || !isAuthenticated) {
+      return
+    }
+
+    let cancelled = false
+
+    void ensureProfile()
+      .then(() => {
+        if (!cancelled) {
+          void navigate({ to: '/account' })
+        }
+      })
+      .catch((caught: unknown) => {
+        if (!cancelled) {
+          setError(
+            caught instanceof Error
+              ? caught.message
+              : 'Unable to finish account setup.',
+          )
+          setShouldCompleteSignup(false)
+          setIsSubmitting(false)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [
+    ensureProfile,
+    isAuthenticated,
+    isLoading,
+    navigate,
+    shouldCompleteSignup,
+  ])
 
   return (
     <section className="auth-page">
@@ -36,16 +74,15 @@ function Register() {
             email: String(form.get('email') ?? ''),
             password: String(form.get('password') ?? ''),
           })
-            .then(() => ensureProfile())
-            .then(() => navigate({ to: '/account' }))
+            .then(() => setShouldCompleteSignup(true))
             .catch((caught: unknown) => {
               setError(
                 caught instanceof Error
                   ? caught.message
                   : 'Unable to create account.',
               )
+              setIsSubmitting(false)
             })
-            .finally(() => setIsSubmitting(false))
         }}
       >
         <label>
