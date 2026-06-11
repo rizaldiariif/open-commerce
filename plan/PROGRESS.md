@@ -4,14 +4,39 @@ This file is the shared progress log for future Codex threads. Update it at the 
 
 ## Current Status
 
-- Project planning docs exist.
-- `.gitignore` and `.env.example` exist.
+- TanStack Start app scaffold exists with the initial storefront/admin shell routes.
+- Convex project files and generated bindings exist.
+- `.gitignore` and `.env.example` exist and include the current local development variables.
 - Local `.env` exists and is intentionally untracked.
 - `SETUP_TOKEN`, `JWT_PRIVATE_KEY`, and `JWKS` were generated locally.
-- `CONVEX_DEPLOYMENT` and `VITE_CONVEX_URL` still need real values after the app is scaffolded and Convex is linked.
-- App implementation has not started yet.
+- `CONVEX_DEPLOYMENT`, `VITE_CONVEX_URL`, and `VITE_CONVEX_SITE_URL` are set in ignored local env files after Convex linking.
+- Task 01 foundation/tooling is complete and ready for manual review.
 
 ## Task Log
+
+### Task 01: Foundation and Tooling
+
+- Status: complete
+- Started: 2026-06-11
+- Completed: 2026-06-11
+- Summary:
+  - Scaffolded TanStack Start with TypeScript, Vite, React, ESLint, Prettier, and npm scripts.
+  - Added Convex packages, initialized Convex functions/schema, generated bindings, and linked a cloud dev deployment.
+  - Synced real Convex deployment values into ignored local env files.
+  - Added the app shell and routes for `/`, `/products`, `/cart`, `/login`, `/register`, `/admin`, and `/api/health`.
+  - Updated README and `.env.example`.
+- Build:
+  - Passed: `npm run build`.
+- Additional checks:
+  - Passed: `npm run lint`.
+  - Passed: `npm run format:check`.
+  - Passed: `npm run dev:convex -- --once --tail-logs disable`.
+  - Passed: dev-server HTTP 200 route sweep for the initial pages and health route.
+  - Passed: browser smoke check for homepage title and hero heading.
+- Manual test:
+  - Run `npm run dev` and visit `/`, `/products`, `/cart`, `/login`, `/register`, `/admin`, and `/api/health`.
+- Commit:
+  - Pending.
 
 ### Planning Setup
 
@@ -29,5 +54,4 @@ This file is the shared progress log for future Codex threads. Update it at the 
 
 ## Next Task
 
-Start with `plan/01-foundation-and-tooling.md`.
-
+Start `plan/02-convex-schema-and-domain.md` in a new Codex thread after Task 01 is committed and pushed.
