@@ -12,8 +12,32 @@ This file is the shared progress log for future Codex threads. Update it at the 
 - `CONVEX_DEPLOYMENT`, `VITE_CONVEX_URL`, and `VITE_CONVEX_SITE_URL` are set in ignored local env files after Convex linking.
 - Task 01 foundation/tooling is complete and ready for manual review.
 - Task 02 Convex schema/domain is complete and ready for manual review.
+- Task 03 authentication/roles/bootstrap is complete and ready for manual review.
 
 ## Task Log
+
+### Task 03: Authentication, Roles, and Bootstrap
+
+- Status: complete
+- Started: 2026-06-11
+- Completed: 2026-06-11
+- Summary:
+  - Added Convex Auth email/password configuration, auth HTTP routes, auth tables, and generated bindings.
+  - Added authenticated profile synchronization with default `customer` role.
+  - Added role guard queries for admin, superadmin, and customer account access.
+  - Added one-time `/setup` bootstrap flow guarded by `SETUP_TOKEN` that promotes the signed-in first account to `superadmin` and disables itself afterward.
+  - Added working login/register/sign-out UI, auth-aware shell navigation, guarded `/admin`, and guarded `/account`.
+- Build:
+  - Passed: `npm run build`.
+- Additional checks:
+  - Passed: `npx convex codegen`.
+  - Passed: `npm run lint`.
+  - Passed: `npm run format:check`.
+- Manual test:
+  - Run `npm run dev:convex` and `npm run dev`, register a user, visit `/setup`, enter the local `SETUP_TOKEN`, and confirm `/admin` opens for the bootstrapped superadmin.
+  - Confirm invalid setup tokens fail, `/setup` disables after the first superadmin exists, and unauthenticated/customer sessions cannot access `/admin`.
+- Commit:
+  - `a474445`.
 
 ### Task 02: Convex Schema and Core Domain
 

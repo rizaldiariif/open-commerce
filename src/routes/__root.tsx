@@ -9,6 +9,7 @@ import {
 } from '@tanstack/react-router'
 
 import appCss from '../styles/app.css?url'
+import { AuthStatus } from '../components/AuthStatus'
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient
@@ -48,18 +49,14 @@ function RootComponent() {
             <Link to="/cart" activeProps={{ 'data-status': 'active' }}>
               Cart
             </Link>
+            <Link to="/setup" activeProps={{ 'data-status': 'active' }}>
+              Setup
+            </Link>
             <Link to="/admin" activeProps={{ 'data-status': 'active' }}>
               Admin
             </Link>
           </nav>
-          <nav className="account-nav" aria-label="Account navigation">
-            <Link to="/login" activeProps={{ 'data-status': 'active' }}>
-              Login
-            </Link>
-            <Link to="/register" activeProps={{ 'data-status': 'active' }}>
-              Register
-            </Link>
-          </nav>
+          <AuthStatus />
         </header>
         <main>
           <Outlet />

@@ -28,6 +28,15 @@ Seed default site settings and homepage content after Convex is running:
 npx convex run bootstrap:seedDefaults
 ```
 
+Authentication uses Convex Auth with email/password accounts. Register or log in
+through `/register` and `/login`; signed-in users get a `customer` profile by
+default.
+
+To create the first superadmin, sign in with the account that should own the
+store setup, visit `/setup`, and enter the local `SETUP_TOKEN`. Bootstrap is
+disabled after the first `superadmin` profile exists. Admin screens at `/admin`
+require an `admin` or `superadmin` profile.
+
 Build and typecheck:
 
 ```sh

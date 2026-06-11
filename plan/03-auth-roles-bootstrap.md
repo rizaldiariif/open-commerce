@@ -1,5 +1,9 @@
 # 03. Authentication, Roles, and Bootstrap
 
+## Status
+
+Complete on 2026-06-11.
+
 ## Goal
 
 Implement Convex Auth, user profiles, role guards, and the one-time superadmin bootstrap.
@@ -27,14 +31,28 @@ Implement Convex Auth, user profiles, role guards, and the one-time superadmin b
 
 ## Acceptance Checks
 
-- New users default to `customer`.
-- A valid setup token can create the first `superadmin`.
-- Invalid setup token fails.
-- Bootstrap cannot create a second superadmin after one exists.
-- Admin routes reject unauthenticated users and customers.
+- [x] New users default to `customer`.
+- [x] A valid setup token can create the first `superadmin`.
+- [x] Invalid setup token fails.
+- [x] Bootstrap cannot create a second superadmin after one exists.
+- [x] Admin routes reject unauthenticated users and customers.
+
+## Completion Notes
+
+- Added Convex Auth with email/password provider, auth HTTP routes, auth tables, and generated bindings.
+- Added profile synchronization for signed-in users and role guard queries for admin, superadmin, and account access.
+- Added one-time `/setup` superadmin bootstrap that requires an authenticated user plus `SETUP_TOKEN`.
+- Added working `/login`, `/register`, `/account`, and auth-aware shell/sign-out behavior.
+- Added `/admin` access gating for `admin` and `superadmin` profiles.
+- Verified with `npm run build`, `npm run lint`, and `npm run format:check`.
+
+## Manual Test Notes
+
+- Start Convex and the web app, register a user, and confirm `/account` shows the signed-in email.
+- Visit `/setup`, enter the local `SETUP_TOKEN`, and confirm the account can open `/admin`.
+- Confirm an invalid setup token shows an error and that `/setup` reports bootstrap complete after the first superadmin exists.
 
 ## Dependencies
 
 - 01 Foundation and Tooling.
 - 02 Convex Schema and Core Domain.
-
