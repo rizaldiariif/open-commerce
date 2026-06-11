@@ -53,7 +53,7 @@ This file is the shared progress log for future Codex threads. Update it at the 
     oversell, reserves coupon usage, and expiry releases stock/coupon
     reservation exactly once.
 - Commit:
-  - `c6564d6`.
+  - `72ec2d9`.
 
 ### Task 05: Storefront Catalog and Cart
 
