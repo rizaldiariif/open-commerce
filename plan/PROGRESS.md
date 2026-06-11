@@ -60,7 +60,7 @@ This file is the shared progress log for future Codex threads. Update it at the 
   - Temporarily use an invalid Resend API key and confirm failed events appear
     in `/admin` without rolling back payment or order status changes.
 - Commit:
-  - `0acb663`.
+  - `a4e51aa`.
 
 ### Task 07: Xendit Payments and Webhooks
 
