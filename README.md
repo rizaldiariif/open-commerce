@@ -31,6 +31,15 @@ npx convex run bootstrap:seedDefaults
 The same seed command also creates default transactional email templates when
 they are missing.
 
+For launch QA or demos, seed a small active catalog and coupon after defaults:
+
+```sh
+npx convex run bootstrap:seedDemoCatalog
+```
+
+The demo seed is idempotent and creates active categories, products, variants
+with stock movement records, and a `LAUNCH10` coupon.
+
 Authentication uses Convex Auth with email/password accounts. Register or log in
 through `/register` and `/login`; signed-in users get a `customer` profile by
 default.
@@ -104,6 +113,9 @@ Build and typecheck:
 ```sh
 npm run build
 ```
+
+Launch checklist, deployment notes, and manual QA flows live in
+[`docs/launch-readiness.md`](docs/launch-readiness.md).
 
 ## Domain Model
 

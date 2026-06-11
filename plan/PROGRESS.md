@@ -20,8 +20,38 @@ This file is the shared progress log for future Codex threads. Update it at the 
 - Task 08 email notifications is complete and ready for manual review.
 - Task 09 order management and fulfillment is complete and ready for manual
   review.
+- Task 10 launch readiness and QA is complete and ready for manual review.
 
 ## Task Log
+
+### Task 10: Launch Readiness and QA
+
+- Status: complete
+- Started: 2026-06-11
+- Completed: 2026-06-11
+- Summary:
+  - Added repeatable `bootstrap:seedDemoCatalog` launch QA/demo data for active
+    categories, products, stocked variants, inventory movements, `LAUNCH10`
+    coupon setup, and a homepage banner when none exists.
+  - Added `docs/launch-readiness.md` covering environment checks,
+    Vercel/Convex/Xendit/Resend deployment notes, launch gate, and deferred
+    manual QA flows.
+  - Updated `README.md` with the demo seed command and launch checklist link.
+- Build:
+  - Passed: `npm run build`.
+- Additional checks:
+  - Passed: `npx convex codegen`.
+- Docs updated:
+  - Updated `README.md`.
+  - Added `docs/launch-readiness.md`.
+  - Updated `plan/10-launch-readiness-qa.md`.
+- Manual test:
+  - After all plan tasks are complete, follow `docs/launch-readiness.md` against
+    the target deployment.
+  - Confirm fresh `/setup` superadmin bootstrap, admin catalog/content, customer
+    checkout, Xendit sandbox payment, webhook idempotency, expiry stock/coupon
+    release, fulfillment email attempts, permission guards, responsive views,
+    SEO metadata, and media soft-delete smoke behavior.
 
 ### Task 09: Order Management and Fulfillment
 
@@ -314,4 +344,5 @@ This file is the shared progress log for future Codex threads. Update it at the 
 
 ## Next Task
 
-Start `plan/09-order-management-fulfillment.md` in a new Codex thread after Task 08 is committed and pushed.
+All sequential MVP plan tasks are complete after Task 10 is committed and
+pushed.

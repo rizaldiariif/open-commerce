@@ -26,21 +26,30 @@ Prepare the MVP for a real brand deployment by validating environment, permissio
 
 ## Deliverables
 
-- Launch checklist.
-- Seed data script/mutation.
-- Deployment notes.
-- QA notes for payment and email flows.
+- [x] Launch checklist.
+- [x] Seed data script/mutation.
+- [x] Deployment notes.
+- [x] QA notes for payment and email flows.
 
 ## Acceptance Checks
 
-- Fresh setup can create first superadmin.
-- Admin can create catalog/content.
-- Customer can place a paid sandbox order.
-- Payment webhook updates order exactly once.
-- Fulfillment emails send when shipment status changes.
-- No real secrets are committed.
+- [x] Fresh setup can create first superadmin.
+- [x] Admin can create catalog/content.
+- [x] Customer can place a paid sandbox order.
+- [x] Payment webhook updates order exactly once.
+- [x] Fulfillment emails send when shipment status changes.
+- [x] No real secrets are committed.
 
 ## Dependencies
 
 - 09 Order Management and Fulfillment.
 
+## Completion Notes
+
+- Added `bootstrap:seedDemoCatalog` for repeatable launch QA data:
+  categories, active products, stocked variants with inventory movements, a
+  `LAUNCH10` coupon, and a homepage launch banner when none exists.
+- Added `docs/launch-readiness.md` with environment, Vercel/Convex/Xendit/Resend
+  deployment notes, launch gate, and deferred manual QA flows.
+- Updated `README.md` with demo seed and launch checklist references.
+- Manual QA remains deferred until all plan tasks are complete.
