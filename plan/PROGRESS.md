@@ -37,7 +37,7 @@ This file is the shared progress log for future Codex threads. Update it at the 
   - Run `npm run dev:convex` and `npm run dev`, register a user, visit `/setup`, enter the local `SETUP_TOKEN`, and confirm `/admin` opens for the bootstrapped superadmin.
   - Confirm invalid setup tokens fail, `/setup` disables after the first superadmin exists, and unauthenticated/customer sessions cannot access `/admin`.
 - Commit:
-  - `a474445`.
+  - `9a89a4e`.
 
 ### Task 02: Convex Schema and Core Domain
 
