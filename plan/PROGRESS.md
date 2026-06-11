@@ -34,7 +34,7 @@ This file is the shared progress log for future Codex threads. Update it at the 
 - Manual test:
   - With Convex running, run `npx convex run bootstrap:seedDefaults` and confirm it reports `created` on the first run and `exists` afterward.
 - Commit:
-  - Pending.
+  - `f60437a`.
 
 ### Task 01: Foundation and Tooling
 
