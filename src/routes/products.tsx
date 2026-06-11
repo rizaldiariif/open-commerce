@@ -1,19 +1,97 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
+import { useQuery } from 'convex/react'
+
+import { api } from '../../convex/_generated/api'
 
 export const Route = createFileRoute('/products')({
+  head: () => ({
+    meta: [
+      { title: 'Products | Muse Commerce' },
+      {
+        name: 'description',
+        content: 'Browse the current Muse Commerce catalog.',
+      },
+    ],
+  }),
   component: Products,
 })
 
 function Products() {
+  const catalog = useQuery(api.storefront.listProducts)
+
+  if (catalog === undefined) {
+    return (
+      <section className="content-page">
+        <p className="eyebrow">Storefront</p>
+        <h1>Products</h1>
+        <p>Loading current products.</p>
+      </section>
+    )
+  }
+
   return (
-    <section className="content-page">
-      <p className="eyebrow">Storefront</p>
-      <h1>Products</h1>
-      <p>
-        Product listing will connect to Convex catalog queries in the catalog
-        task. This page is ready for category filters, variant pricing, and
-        stock-aware product cards.
-      </p>
+    <section className="storefront-page">
+      <header className="catalog-heading">
+        <div>
+          <p className="eyebrow">Storefront</p>
+          <h1>Products</h1>
+          <p>
+            Browse active products with current pricing, variants, and stock
+            availability.
+          </p>
+        </div>
+        <Link to="/cart" className="secondary-link">
+          View cart
+        </Link>
+      </header>
+
+      {catalog.categories.length ? (
+        <div className="category-row" aria-label="Active categories">
+          {catalog.categories.map((category) => (
+            <span key={category._id}>{category.name}</span>
+          ))}
+        </div>
+      ) : null}
+
+      {catalog.products.length ? (
+        <div className="product-grid">
+          {catalog.products.map((product) => (
+            <Link
+              key={product._id}
+              to="/products/$slug"
+              params={{ slug: product.slug }}
+              className="product-card"
+            >
+              {product.imageUrl ? (
+                <img src={product.imageUrl} alt="" />
+              ) : (
+                <div className="product-image-placeholder">Muse</div>
+              )}
+              <span>{product.category?.name ?? 'Muse Collection'}</span>
+              <strong>{product.name}</strong>
+              <small>
+                {product.minPrice === null
+                  ? 'Price pending'
+                  : formatMoney(product.minPrice)}
+              </small>
+              <em>{product.inStock ? 'In stock' : 'Out of stock'}</em>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <p className="empty-state">
+          No active products are published yet. Check back after the catalog is
+          stocked.
+        </p>
+      )}
     </section>
   )
+}
+
+function formatMoney(value: number) {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(value)
 }

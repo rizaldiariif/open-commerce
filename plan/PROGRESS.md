@@ -14,8 +14,31 @@ This file is the shared progress log for future Codex threads. Update it at the 
 - Task 02 Convex schema/domain is complete and ready for manual review.
 - Task 03 authentication/roles/bootstrap is complete and ready for manual review.
 - Task 04 admin catalog/content is complete and ready for manual review.
+- Task 05 storefront catalog/cart is complete and ready for manual review.
 
 ## Task Log
+
+### Task 05: Storefront Catalog and Cart
+
+- Status: complete
+- Started: 2026-06-11
+- Completed: 2026-06-11
+- Summary:
+  - Added public Convex storefront queries for homepage content, active product listing, and product details with media URLs, categories, variants, pricing, and available stock.
+  - Added logged-in customer cart mutations for add-to-cart, quantity updates, item removal, and server-side validation of product/variant availability and stock.
+  - Replaced placeholder `/`, `/products`, and `/cart` screens with live storefront views and added `/products/$slug` product detail pages.
+  - Added responsive storefront/cart styling and basic SEO metadata for the new public routes.
+- Build:
+  - Passed: `npm run build`.
+- Additional checks:
+  - Passed: `npx convex codegen`.
+- Docs updated:
+  - Updated `README.md`.
+  - Updated `plan/05-storefront-catalog-cart.md`.
+- Manual test:
+  - Run `npm run dev:convex` and `npm run dev`, publish at least one active product with an active variant from `/admin`, then visit `/`, `/products`, and `/products/{slug}` while signed out.
+  - Confirm browsing works while signed out and add-to-cart prompts login.
+  - Sign in as a customer, add an in-stock variant to the cart, update quantity, remove it, and confirm impossible quantities are rejected.
 
 ### Task 04: Admin Catalog and Content
 
@@ -124,4 +147,4 @@ This file is the shared progress log for future Codex threads. Update it at the 
 
 ## Next Task
 
-Start `plan/05-storefront-catalog-cart.md` in a new Codex thread after Task 04 is committed and pushed.
+Start `plan/06-checkout-orders-coupons.md` in a new Codex thread after Task 05 is committed and pushed.

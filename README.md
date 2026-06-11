@@ -47,6 +47,15 @@ The admin workspace at `/admin` includes catalog and content operations for:
   email, and pending payment expiry
 - recent admin activity and inventory movement review
 
+The public storefront includes:
+
+- editable homepage content from Convex site content/settings
+- `/products` catalog browsing for active products and categories
+- `/products/$slug` product detail pages with image galleries, variants, stock,
+  and login-aware add-to-cart
+- `/cart` for signed-in customer cart review, quantity updates, removal, and
+  stock validation before the future checkout step
+
 Build and typecheck:
 
 ```sh

@@ -15,6 +15,7 @@ import type * as domain from "../domain.js";
 import type * as health from "../health.js";
 import type * as http from "../http.js";
 import type * as profiles from "../profiles.js";
+import type * as storefront from "../storefront.js";
 
 import type {
   ApiFromModules,
@@ -30,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   health: typeof health;
   http: typeof http;
   profiles: typeof profiles;
+  storefront: typeof storefront;
 }>;
 
 /**

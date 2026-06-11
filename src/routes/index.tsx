@@ -1,49 +1,150 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { useQuery } from 'convex/react'
+
+import { api } from '../../convex/_generated/api'
 
 export const Route = createFileRoute('/')({
+  head: () => ({
+    meta: [
+      { title: 'Muse Commerce' },
+      {
+        name: 'description',
+        content: 'Curated single-brand shopping from Muse Commerce.',
+      },
+    ],
+  }),
   component: Home,
 })
 
 function Home() {
+  const home = useQuery(api.storefront.getHome)
+
+  if (home === undefined) {
+    return (
+      <section className="content-page">
+        <p className="eyebrow">Storefront</p>
+        <h1>Loading Muse Commerce.</h1>
+        <p>Fetching the latest homepage and catalog content.</p>
+      </section>
+    )
+  }
+
+  const { homepageContent, featuredProducts, siteSettings } = home
+
   return (
-    <section className="page-grid">
-      <div className="hero-panel">
-        <p className="eyebrow">Single-brand commerce MVP</p>
-        <h1>
-          Launch a focused storefront with inventory, checkout, and admin
-          operations.
-        </h1>
-        <p className="lede">
-          Muse Commerce starts with the routes and backend wiring the MVP needs,
-          then grows into catalog, cart, order, payment, and fulfillment
-          workflows.
-        </p>
+    <section className="storefront-page">
+      {homepageContent.announcement ? (
+        <p className="announcement">{homepageContent.announcement}</p>
+      ) : null}
+
+      <div className="home-hero">
+        <div>
+          <p className="eyebrow">{siteSettings.storeName}</p>
+          <h1>{homepageContent.title}</h1>
+          {homepageContent.subtitle ? (
+            <p className="lede">{homepageContent.subtitle}</p>
+          ) : null}
+        </div>
+        {homepageContent.heroImageUrl ? (
+          <img
+            src={homepageContent.heroImageUrl}
+            alt=""
+            className="hero-image"
+          />
+        ) : null}
         <div className="action-row">
-          <Link to="/products" className="primary-link">
-            Browse products
+          <Link
+            to={homepageContent.heroCtaHref ?? '/products'}
+            className="primary-link"
+          >
+            {homepageContent.heroCtaLabel ?? 'Shop products'}
           </Link>
-          <Link to="/admin" className="secondary-link">
-            Open admin
+          <Link to="/cart" className="secondary-link">
+            View cart
           </Link>
         </div>
       </div>
-      <aside className="status-panel" aria-label="Foundation status">
-        <h2>Foundation</h2>
-        <dl>
+
+      {homepageContent.homepageBanners.length ? (
+        <div className="banner-grid">
+          {homepageContent.homepageBanners.map((banner) => (
+            <Link
+              key={`${banner.title}-${banner.href ?? ''}`}
+              to={banner.href ?? '/products'}
+              className="banner-card"
+            >
+              {banner.imageUrl ? <img src={banner.imageUrl} alt="" /> : null}
+              <strong>{banner.title}</strong>
+              {banner.body ? <span>{banner.body}</span> : null}
+            </Link>
+          ))}
+        </div>
+      ) : null}
+
+      <section className="section-block">
+        <div className="section-heading">
           <div>
-            <dt>Framework</dt>
-            <dd>TanStack Start</dd>
+            <p className="eyebrow">Catalog</p>
+            <h2>Featured products</h2>
           </div>
-          <div>
-            <dt>Backend</dt>
-            <dd>Convex</dd>
+          <Link to="/products" className="text-link">
+            Browse all
+          </Link>
+        </div>
+        {featuredProducts.length ? (
+          <div className="product-grid">
+            {featuredProducts.map((product) => (
+              <ProductCard key={product._id} product={product} />
+            ))}
           </div>
-          <div>
-            <dt>Health</dt>
-            <dd>/api/health</dd>
-          </div>
-        </dl>
-      </aside>
+        ) : (
+          <p className="empty-state">
+            No active products yet. Publish products from the admin catalog to
+            fill this shelf.
+          </p>
+        )}
+      </section>
+
+      {homepageContent.aboutText ? (
+        <section className="about-band">
+          <p>{homepageContent.aboutText}</p>
+        </section>
+      ) : null}
     </section>
   )
+}
+
+function ProductCard({
+  product,
+}: Readonly<{
+  product: NonNullable<ReturnType<typeof useQuery<typeof api.storefront.getHome>>>['featuredProducts'][number]
+}>) {
+  return (
+    <Link
+      to="/products/$slug"
+      params={{ slug: product.slug }}
+      className="product-card"
+    >
+      {product.imageUrl ? (
+        <img src={product.imageUrl} alt="" />
+      ) : (
+        <div className="product-image-placeholder">Muse</div>
+      )}
+      <span>{product.category?.name ?? 'Muse Collection'}</span>
+      <strong>{product.name}</strong>
+      <small>
+        {product.minPrice === null
+          ? 'Price pending'
+          : formatMoney(product.minPrice, 'IDR')}
+      </small>
+    </Link>
+  )
+}
+
+function formatMoney(value: number, currency: string) {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 0,
+  }).format(value)
 }
