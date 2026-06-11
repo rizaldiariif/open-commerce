@@ -11,8 +11,30 @@ This file is the shared progress log for future Codex threads. Update it at the 
 - `SETUP_TOKEN`, `JWT_PRIVATE_KEY`, and `JWKS` were generated locally.
 - `CONVEX_DEPLOYMENT`, `VITE_CONVEX_URL`, and `VITE_CONVEX_SITE_URL` are set in ignored local env files after Convex linking.
 - Task 01 foundation/tooling is complete and ready for manual review.
+- Task 02 Convex schema/domain is complete and ready for manual review.
 
 ## Task Log
+
+### Task 02: Convex Schema and Core Domain
+
+- Status: complete
+- Started: 2026-06-11
+- Completed: 2026-06-11
+- Summary:
+  - Added the full single-brand MVP Convex schema for profiles, settings/content, media, catalog, carts, addresses, orders, payments, shipments, coupons, admin activity, and email events.
+  - Added shared domain constants and validation helpers for roles, statuses, status transitions, slugs, quantities, and money amounts.
+  - Added idempotent `bootstrap:seedDefaults` mutation for default site settings and homepage content.
+  - Updated README and this task file with schema/bootstrap notes.
+- Build:
+  - Passed: `npm run build`.
+- Additional checks:
+  - Passed: `npx convex codegen`.
+  - Passed: `npm run lint`.
+  - Passed: `npm run format:check`.
+- Manual test:
+  - With Convex running, run `npx convex run bootstrap:seedDefaults` and confirm it reports `created` on the first run and `exists` afterward.
+- Commit:
+  - Pending.
 
 ### Task 01: Foundation and Tooling
 
@@ -54,4 +76,4 @@ This file is the shared progress log for future Codex threads. Update it at the 
 
 ## Next Task
 
-Start `plan/02-convex-schema-and-domain.md` in a new Codex thread after Task 01 is committed and pushed.
+Start `plan/03-auth-roles-bootstrap.md` in a new Codex thread after Task 02 is committed and pushed.

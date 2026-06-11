@@ -8,6 +8,8 @@
  * @module
  */
 
+import type * as bootstrap from "../bootstrap.js";
+import type * as domain from "../domain.js";
 import type * as health from "../health.js";
 
 import type {
@@ -17,6 +19,8 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  bootstrap: typeof bootstrap;
+  domain: typeof domain;
   health: typeof health;
 }>;
 

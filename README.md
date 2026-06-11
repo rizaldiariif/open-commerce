@@ -22,11 +22,22 @@ Run Convex in a separate terminal after the project is linked:
 npm run dev:convex
 ```
 
+Seed default site settings and homepage content after Convex is running:
+
+```sh
+npx convex run bootstrap:seedDefaults
+```
+
 Build and typecheck:
 
 ```sh
 npm run build
 ```
+
+## Domain Model
+
+Convex schema tables live in `convex/schema.ts`. Shared MVP domain constants,
+status transitions, and validation helpers live in `convex/domain.ts`.
 
 ## Environment
 

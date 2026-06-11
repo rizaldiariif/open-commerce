@@ -1,5 +1,7 @@
 # 02. Convex Schema and Core Domain
 
+Status: complete
+
 ## Goal
 
 Define the database schema and shared domain types that the rest of the MVP will build on.
@@ -50,3 +52,9 @@ Define the database schema and shared domain types that the rest of the MVP will
 
 - 01 Foundation and Tooling.
 
+## Completion Notes
+
+- Added all MVP Convex tables with early indexes for profile lookup, active catalog browsing, cart retrieval, order/payment/fulfillment management, coupon redemption checks, and email event tracking.
+- Added `convex/domain.ts` with role/status constants, status transition guards, slug validation, quantity validation, and integer minor-unit money validation.
+- Added the idempotent `bootstrap:seedDefaults` mutation for default site settings and homepage content.
+- Verified with `npx convex codegen`, `npm run lint`, `npm run format:check`, and `npm run build`.
