@@ -52,6 +52,8 @@ This file is the shared progress log for future Codex threads. Update it at the 
     checkout, Xendit sandbox payment, webhook idempotency, expiry stock/coupon
     release, fulfillment email attempts, permission guards, responsive views,
     SEO metadata, and media soft-delete smoke behavior.
+- Commit:
+  - `cb375b5`.
 
 ### Task 09: Order Management and Fulfillment
 
