@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MUSE Account Auth Spec</title>
+    <link rel="stylesheet" href="spec.css" />
+  </head>
+  <body>
+    <div class="topbar">Account target: simple retail account workspace, not a separate brand landing page.</div>
+    <header class="site-header">
+      <div class="shell">
+        <h1 class="brand">Account Auth</h1>
+        <p class="meta">Applies to login, register, account, and orders<br />Customer account routes</p>
+      </div>
+    </header>
+    <nav class="doc-nav" aria-label="Spec pages">
+      <div class="shell">
+        <a href="00-index.html">Index</a>
+        <a href="01-global-shell.html">Global Shell</a>
+        <a href="02-home.html">Home</a>
+        <a href="03-catalog.html">Catalog</a>
+        <a href="04-product-detail.html">Product Detail</a>
+        <a href="05-cart-checkout-payment.html">Cart Checkout</a>
+        <a href="06-account-auth.html">Account Auth</a>
+        <a href="07-admin.html">Admin</a>
+      </div>
+    </nav>
+
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <h1>Account Requirement</h1>
+          <p>
+            Make login, register, account, and order history feel like part of
+            the same retail system. Forms should be compact and clear. Account
+            pages should be practical dashboards for orders, payment state, and
+            delivery progress.
+          </p>
+          <p class="note">
+            The current auth routes are already simple. The main work is shared
+            form styling, quieter access states, and extracting account/order
+            workspace pieces before route files get crowded.
+          </p>
+        </div>
+        <aside class="summary-card">
+          <dl>
+            <div><dt>Auth routes</dt><dd><code>/login</code>, <code>/register</code></dd></div>
+            <div><dt>Account routes</dt><dd><code>/account/*</code></dd></div>
+            <div><dt>Current helpers</dt><dd><code>AccessRequired</code>, <code>StatusBadge</code></dd></div>
+            <div><dt>Target</dt><dd>Retail account workspace</dd></div>
+          </dl>
+        </aside>
+      </section>
+
+      <section>
+        <h2>Current Auth And MUJI Reference</h2>
+        <div class="compare-grid">
+          <article class="compare-card">
+            <figure>
+              <div class="screen-frame short">
+                <img src="../muse-current-screenshots/login-desktop-full.png" alt="Current MUSE login screenshot" />
+              </div>
+              <figcaption>
+                <strong>Current MUSE Login</strong>
+                <span>Simple centered form inside current expressive shell and footer.</span>
+              </figcaption>
+            </figure>
+          </article>
+          <article class="compare-card">
+            <figure>
+              <div class="screen-frame short">
+                <img src="crops/muji-global-header.png" alt="MUJI global header crop" />
+              </div>
+              <figcaption>
+                <strong>MUJI Shell Reference</strong>
+                <span>Auth should live inside a compact retail shell with search, account, cart, and category context.</span>
+              </figcaption>
+            </figure>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Current Account And MUJI Reference</h2>
+        <div class="compare-grid">
+          <article class="compare-card">
+            <figure>
+              <div class="screen-frame short">
+                <img src="../muse-current-screenshots/account-desktop-full.png" alt="Current MUSE account screenshot" />
+              </div>
+              <figcaption>
+                <strong>Current MUSE Account</strong>
+                <span>Captured signed-out access state; authenticated routes support order history and order detail.</span>
+              </figcaption>
+            </figure>
+          </article>
+          <article class="compare-card">
+            <figure>
+              <div class="screen-frame short">
+                <img src="crops/muji-mobile-footer-accordions.png" alt="MUJI compact account/footer controls crop" />
+              </div>
+              <figcaption>
+                <strong>MUJI Compact Control Reference</strong>
+                <span>Small accordions, simple controls, practical links, and restrained field/action styling.</span>
+              </figcaption>
+            </figure>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Differences To Resolve</h2>
+        <div class="table-scroll">
+          <table class="reference-table">
+            <thead>
+              <tr>
+                <th>Area</th>
+                <th>Current MUSE</th>
+                <th>Reference behavior</th>
+                <th>Required MUSE change</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Auth page</td>
+                <td>Simple form, but page uses current large shell and footer.</td>
+                <td>Form should feel like a utility task inside store context.</td>
+                <td>Build shared <code>PublicAuthForm</code> with compact labels and cedar action.</td>
+              </tr>
+              <tr>
+                <td>Register/login duplication</td>
+                <td>Two route-local forms with similar structure.</td>
+                <td>Consistent fields, messages, and button states.</td>
+                <td>Extract <code>AuthFormShell</code> or <code>PublicAuthForm</code>.</td>
+              </tr>
+              <tr>
+                <td>Account landing</td>
+                <td>Text page with one "View orders" action.</td>
+                <td>Practical workspace with order status and profile/account actions.</td>
+                <td>Build <code>AccountDashboard</code> with order summary cards and quick actions.</td>
+              </tr>
+              <tr>
+                <td>Order list</td>
+                <td>Existing route lists customer orders.</td>
+                <td>Rows should be compact and scannable with status labels.</td>
+                <td>Build <code>CustomerOrderTable</code> for desktop and cards for mobile.</td>
+              </tr>
+              <tr>
+                <td>Order detail</td>
+                <td>Payment action and details already exist.</td>
+                <td>Order detail should share checkout/payment summary patterns.</td>
+                <td>Reuse <code>OrderSummary</code>, <code>PaymentStatusPanel</code>, <code>StatusBadge</code>.</td>
+              </tr>
+              <tr>
+                <td>Access states</td>
+                <td>Large content pages.</td>
+                <td>Small store utility states with next action.</td>
+                <td>Restyle <code>AccessRequired</code> and account empty states.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>Component Requirements With Crops</h2>
+        <div class="component-grid">
+          <article class="component-card">
+            <img class="crop" src="crops/muji-global-header.png" alt="MUJI header crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag keep">Extract</span><span class="tag replace">Restyle</span></div>
+              <h3><code>PublicAuthForm</code></h3>
+              <p>Shared form shell for login/register with compact fields, error message, loading button, and redirect copy.</p>
+              <dl>
+                <div><dt>Already have</dt><dd>Login/register handlers and fields.</dd></div>
+                <div><dt>Get rid</dt><dd>Duplicated auth form markup if it grows.</dd></div>
+                <div><dt>Need</dt><dd>Shared field/button/message styling and secondary link between login/register.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop" src="crops/muji-mobile-footer-accordions.png" alt="MUJI accordion crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag new">Build</span></div>
+              <h3><code>AccountDashboard</code></h3>
+              <p>Customer workspace with profile summary, recent order, open payment, and links to orders/addresses.</p>
+              <dl>
+                <div><dt>Already have</dt><dd>Profile access and order routes.</dd></div>
+                <div><dt>Get rid</dt><dd>Text-only account landing page.</dd></div>
+                <div><dt>Need</dt><dd>Recent order query or reuse order list data.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop tall" src="crops/muji-collection-product-grid.png" alt="MUJI dense list/card reference crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag keep">Extract</span><span class="tag replace">Restyle</span></div>
+              <h3><code>CustomerOrderTable</code></h3>
+              <p>Desktop order rows and mobile cards with order number, date, total, payment, fulfillment, and action.</p>
+              <dl>
+                <div><dt>Already have</dt><dd><code>AccountOrders</code> route and <code>StatusBadge</code>.</dd></div>
+                <div><dt>Get rid</dt><dd>Route-local order row/card markup if present.</dd></div>
+                <div><dt>Need</dt><dd>Shared responsive table/card component.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop" src="crops/muji-pdp-purchase-panel.png" alt="MUJI action panel crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag keep">Reuse</span></div>
+              <h3><code>CustomerOrderDetail</code></h3>
+              <p>Order summary, shipping info, items, payment CTA/status, and fulfillment progress.</p>
+              <dl>
+                <div><dt>Already have</dt><dd><code>AccountOrderDetail</code>, payment helpers, order items.</dd></div>
+                <div><dt>Get rid</dt><dd>Any duplicated payment/order summary markup.</dd></div>
+                <div><dt>Need</dt><dd>Reuse checkout <code>OrderSummary</code> and <code>PaymentStatusPanel</code>.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop" src="crops/muji-global-footer.png" alt="MUJI compact form crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag later">Later</span></div>
+              <h3><code>AddressBook</code></h3>
+              <p>Saved address list and edit/add form that matches checkout address fields.</p>
+              <dl>
+                <div><dt>Already have</dt><dd>Checkout can load saved addresses.</dd></div>
+                <div><dt>Get rid</dt><dd>None in first pass.</dd></div>
+                <div><dt>Need</dt><dd>Customer address management route or account panel.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop" src="crops/muji-global-header.png" alt="MUJI utility shell crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag keep">Restyle</span></div>
+              <h3><code>AccessRequiredState</code></h3>
+              <p>Compact signed-out state for account, cart, checkout, and admin access gates.</p>
+              <dl>
+                <div><dt>Already have</dt><dd><code>AccessRequired</code> component.</dd></div>
+                <div><dt>Get rid</dt><dd>Oversized access-state presentation.</dd></div>
+                <div><dt>Need</dt><dd>Variant props for cart, checkout, account, admin copy/actions.</dd></div>
+              </dl>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Current Components Inventory</h2>
+        <div class="table-scroll">
+          <table class="reference-table">
+            <thead>
+              <tr>
+                <th>Current piece</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>Login</code>, <code>Register</code></td>
+                <td>Keep/extract</td>
+                <td>Keep auth flow; extract shared form shell if duplication grows.</td>
+              </tr>
+              <tr>
+                <td><code>Account</code></td>
+                <td>Replace layout</td>
+                <td>Replace text-only landing with <code>AccountDashboard</code>.</td>
+              </tr>
+              <tr>
+                <td><code>AccountOrders</code></td>
+                <td>Keep/restyle</td>
+                <td>Use compact order table/card component.</td>
+              </tr>
+              <tr>
+                <td><code>AccountOrderDetail</code></td>
+                <td>Keep/restyle</td>
+                <td>Reuse payment/order summary components from checkout spec.</td>
+              </tr>
+              <tr>
+                <td><code>StatusBadge</code></td>
+                <td>Keep/restyle</td>
+                <td>Make badges smaller and calmer.</td>
+              </tr>
+              <tr>
+                <td><code>AccessRequired</code></td>
+                <td>Keep/restyle</td>
+                <td>Use for signed-out account/cart/checkout with less display scale.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>Data And Build Notes</h2>
+        <div class="three-col">
+          <article class="task-card">
+            <h3>Data We Have</h3>
+            <p>User profile, auth state, customer orders, order detail, payment status, saved addresses in checkout.</p>
+          </article>
+          <article class="task-card">
+            <h3>Data We Need</h3>
+            <p>Account address management, profile edit, recent order summary, wishlist if added later.</p>
+          </article>
+          <article class="task-card">
+            <h3>Simple First Pass</h3>
+            <p>Restyle login/register/access states first, then extract order list/detail pieces when touching those routes.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="shell">Next: <a href="07-admin.html">Admin spec</a></div>
+    </footer>
+  </body>
+</html>

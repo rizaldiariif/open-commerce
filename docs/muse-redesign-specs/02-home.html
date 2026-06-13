@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MUSE Home Page Spec</title>
+    <link rel="stylesheet" href="spec.css" />
+  </head>
+  <body>
+    <div class="topbar">Home target: product-first modules, not a brand manifesto.</div>
+    <header class="site-header">
+      <div class="shell">
+        <h1 class="brand">Home Page</h1>
+        <p class="meta">Applies to <code>src/routes/index.tsx</code><br />Route: <code>/</code></p>
+      </div>
+    </header>
+    <nav class="doc-nav" aria-label="Spec pages">
+      <div class="shell">
+        <a href="00-index.html">Index</a>
+        <a href="01-global-shell.html">Global Shell</a>
+        <a href="02-home.html">Home</a>
+        <a href="03-catalog.html">Catalog</a>
+        <a href="04-product-detail.html">Product Detail</a>
+        <a href="05-cart-checkout-payment.html">Cart Checkout</a>
+        <a href="06-account-auth.html">Account Auth</a>
+        <a href="07-admin.html">Admin</a>
+      </div>
+    </nav>
+
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <h1>Home Requirement</h1>
+          <p>
+            Convert the current home page from a high-contrast brand/editorial
+            landing page into a simple commerce homepage: hero promo, category
+            entries, seasonal product rows, editorial tiles, and practical links.
+            It should feel quiet, useful, and browsable.
+          </p>
+          <p class="note">
+            Keep <code>src/routes/index.tsx</code> focused on data loading and
+            composition. Extract home sections into small components instead of
+            expanding the route file.
+          </p>
+        </div>
+        <aside class="summary-card">
+          <dl>
+            <div><dt>Current route</dt><dd><code>Home</code></dd></div>
+            <div><dt>Current local UI</dt><dd><code>MetaRow</code>, <code>ProductCard</code></dd></div>
+            <div><dt>Primary data</dt><dd><code>api.storefront.getHome</code></dd></div>
+            <div><dt>Target</dt><dd>Modular commerce page</dd></div>
+          </dl>
+        </aside>
+      </section>
+
+      <section>
+        <h2>Current Page And MUJI Reference</h2>
+        <div class="compare-grid">
+          <article class="compare-card">
+            <figure>
+              <div class="screen-frame">
+                <img src="../muse-current-screenshots/home-desktop-full.png" alt="Current MUSE home screenshot" />
+              </div>
+              <figcaption>
+                <strong>Current MUSE Home</strong>
+                <span>Large heading, meta column, single hero image, banner cards, featured products, black about band, huge footer.</span>
+              </figcaption>
+            </figure>
+          </article>
+          <article class="compare-card">
+            <figure>
+              <div class="screen-frame">
+                <img src="../muji-reference-screenshots/home-desktop-full.png" alt="MUJI home screenshot" />
+              </div>
+              <figcaption>
+                <strong>MUJI Home Reference</strong>
+                <span>Header immediately leads to hero promo, category/product rows, editorial tiles, stories, and service footer.</span>
+              </figcaption>
+            </figure>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Differences To Resolve</h2>
+        <div class="table-scroll">
+          <table class="reference-table">
+            <thead>
+              <tr>
+                <th>Area</th>
+                <th>Current MUSE</th>
+                <th>Reference behavior</th>
+                <th>Required MUSE change</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>First viewport</td>
+                <td>Text-first brand statement with large display type.</td>
+                <td>Image-first promo with short title and button.</td>
+                <td>Use a full-width promo image/module with small overlay and direct CTA.</td>
+              </tr>
+              <tr>
+                <td>Meta column</td>
+                <td>Collection, catalogue, shipping, made stats.</td>
+                <td>No decorative stats; browsing starts quickly.</td>
+                <td>Remove <code>MetaRow</code> from home or move facts into service footer.</td>
+              </tr>
+              <tr>
+                <td>Product discovery</td>
+                <td>One featured product grid after banners.</td>
+                <td>Multiple category, seasonal, and editorial modules.</td>
+                <td>Add category rail, seasonal product row, editorial grid, and story cards.</td>
+              </tr>
+              <tr>
+                <td>Imagery</td>
+                <td>Single large product/lifestyle hero and black label.</td>
+                <td>Light, product-specific, useful, mostly white or neutral backgrounds.</td>
+                <td>Use category/product images without dark overlays unless needed for legibility.</td>
+              </tr>
+              <tr>
+                <td>About section</td>
+                <td>Large black brand band.</td>
+                <td>Brand story is secondary and practical.</td>
+                <td>Replace with small editorial/story cards or service info; no huge black band.</td>
+              </tr>
+              <tr>
+                <td>Mobile</td>
+                <td>Home stacks but still carries large display hierarchy.</td>
+                <td>Mobile shows compact header, product image, then controls/content quickly.</td>
+                <td>Reduce heading sizes and keep category/product modules immediately visible.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>Component Requirements With Crops</h2>
+        <div class="component-grid">
+          <article class="component-card">
+            <img class="crop" src="crops/muji-home-hero.png" alt="MUJI home hero crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag replace">Replace</span><span class="tag new">Build</span></div>
+              <h3><code>HomeHeroPromo</code></h3>
+              <p>Full-width image promo with short title, one CTA, optional slide dots, and restrained overlay.</p>
+              <dl>
+                <div><dt>Already have</dt><dd><code>homepageContent.title</code>, subtitle, CTA, hero image.</dd></div>
+                <div><dt>Get rid</dt><dd>Oversized text-first hero and meta column.</dd></div>
+                <div><dt>Need</dt><dd>Image-first layout, small overlay, responsive focal positioning.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop" src="crops/muji-home-new-arrivals.png" alt="MUJI new arrivals crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag new">Build</span></div>
+              <h3><code>CategoryRail</code></h3>
+              <p>Small category tiles near the top of home, using square image, short label, and link.</p>
+              <dl>
+                <div><dt>Already have</dt><dd>Category names via product/category data in catalog queries.</dd></div>
+                <div><dt>Get rid</dt><dd>Text-only category chips as the only category affordance.</dd></div>
+                <div><dt>Need</dt><dd>Home category image data or reuse banner/media content.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop" src="crops/muji-home-new-arrivals.png" alt="MUJI home product row crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag keep">Restyle</span></div>
+              <h3><code>SeasonalProductRow</code></h3>
+              <p>A compact row for new arrivals, seasonal products, or featured objects.</p>
+              <dl>
+                <div><dt>Already have</dt><dd><code>featuredProducts</code> and route-local <code>ProductCard</code>.</dd></div>
+                <div><dt>Get rid</dt><dd>Heavy card styling and large gaps.</dd></div>
+                <div><dt>Need</dt><dd>Shared <code>StorefrontProductCard</code> used by home and catalog.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop tall" src="crops/muji-home-editorial-grid.png" alt="MUJI editorial grid crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag replace">Replace</span><span class="tag new">Build</span></div>
+              <h3><code>EditorialFeatureGrid</code></h3>
+              <p>Large useful image tiles for seasonal stories or gift guides, not abstract brand copy.</p>
+              <dl>
+                <div><dt>Already have</dt><dd><code>homepageBanners</code> with title, body, href, image.</dd></div>
+                <div><dt>Get rid</dt><dd>Banner cards with strong current MUSE treatment.</dd></div>
+                <div><dt>Need</dt><dd>Grid layout with mixed tile sizes and minimal captions.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop" src="crops/muji-home-story-cards.png" alt="MUJI story cards crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag new">Build</span></div>
+              <h3><code>StoryCardRow</code></h3>
+              <p>Small editorial/news cards for community updates, guides, or collection notes.</p>
+              <dl>
+                <div><dt>Already have</dt><dd>Footer/about copy only.</dd></div>
+                <div><dt>Get rid</dt><dd>Large <code>about-band</code> as the main brand story.</dd></div>
+                <div><dt>Need</dt><dd>Optional story card data or map existing banners into this pattern.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop tall" src="crops/muji-collection-product-grid.png" alt="MUJI product card grid crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag keep">Extract</span><span class="tag replace">Restyle</span></div>
+              <h3><code>StorefrontProductCard</code></h3>
+              <p>Shared quiet product card: image, price, product name, category/status, optional favorite affordance.</p>
+              <dl>
+                <div><dt>Already have</dt><dd>Route-local <code>ProductCard</code> on home and cards in catalog.</dd></div>
+                <div><dt>Get rid</dt><dd>Duplicated card markup and current price-tag visual signature.</dd></div>
+                <div><dt>Need</dt><dd>One shared component with square image and compact text scale.</dd></div>
+              </dl>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Current Components Inventory</h2>
+        <div class="table-scroll">
+          <table class="reference-table">
+            <thead>
+              <tr>
+                <th>Current piece</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>Home</code> route</td>
+                <td>Keep</td>
+                <td>Keep data loading and composition. Move visual blocks to components.</td>
+              </tr>
+              <tr>
+                <td><code>MetaRow</code></td>
+                <td>Remove from home</td>
+                <td>Not needed in first viewport. Service facts can live in footer or small service strip.</td>
+              </tr>
+              <tr>
+                <td><code>ProductCard</code></td>
+                <td>Extract/restyle</td>
+                <td>Promote to shared storefront product card for home and catalog.</td>
+              </tr>
+              <tr>
+                <td><code>banner-grid</code>, <code>banner-card</code></td>
+                <td>Restyle</td>
+                <td>Use as editorial feature grid with light captions and mixed image sizes.</td>
+              </tr>
+              <tr>
+                <td><code>about-band</code>, <code>footer-band</code></td>
+                <td>Remove/replace</td>
+                <td>Replace with smaller story cards and practical service/footer content.</td>
+              </tr>
+              <tr>
+                <td><code>LoadingState</code></td>
+                <td>Keep/restyle</td>
+                <td>Use lighter skeleton-like states matching product grid density.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>Data And Build Notes</h2>
+        <div class="three-col">
+          <article class="task-card">
+            <h3>Data We Have</h3>
+            <p><code>homepageContent</code>, hero image, CTA, banners, featured products, site settings.</p>
+          </article>
+          <article class="task-card">
+            <h3>Data We Need</h3>
+            <p>Image-backed home categories, optional story cards, and optional module ordering from admin content.</p>
+          </article>
+          <article class="task-card">
+            <h3>Simple First Pass</h3>
+            <p>Reuse <code>homepageBanners</code> for editorial/story modules and <code>featuredProducts</code> for product rows before adding schema.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="shell">Next: <a href="03-catalog.html">Catalog spec</a></div>
+    </footer>
+  </body>
+</html>

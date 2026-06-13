@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MUSE Global Shell Spec</title>
+    <link rel="stylesheet" href="spec.css" />
+  </head>
+  <body>
+    <div class="topbar">Global shell target: compact retail utility with MUSE cedar accent.</div>
+    <header class="site-header">
+      <div class="shell">
+        <h1 class="brand">Global Shell</h1>
+        <p class="meta">Applies to <code>src/routes/__root.tsx</code><br />Customer and admin foundations</p>
+      </div>
+    </header>
+    <nav class="doc-nav" aria-label="Spec pages">
+      <div class="shell">
+        <a href="00-index.html">Index</a>
+        <a href="01-global-shell.html">Global Shell</a>
+        <a href="02-home.html">Home</a>
+        <a href="03-catalog.html">Catalog</a>
+        <a href="04-product-detail.html">Product Detail</a>
+        <a href="05-cart-checkout-payment.html">Cart Checkout</a>
+        <a href="06-account-auth.html">Account Auth</a>
+        <a href="07-admin.html">Admin</a>
+      </div>
+    </nav>
+
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <h1>Shell Requirement</h1>
+          <p>
+            Replace the current expressive MUSE shell with a compact retail
+            system: practical promo bar, smaller brand mark, category navigation,
+            search, account/cart actions, and a service footer. This should be
+            implemented once and reused by public routes. Admin routes can share
+            tokens but should use an operational shell variant.
+          </p>
+          <p class="note">
+            The MUSE name stays. The accent color becomes cedar
+            <code>#8a3a2d</code>. Avoid copying MUJI red, logos, exact nav copy,
+            and imagery.
+          </p>
+        </div>
+        <aside class="summary-card">
+          <dl>
+            <div>
+              <dt>Current owner</dt>
+              <dd><code>RootComponent</code></dd>
+            </div>
+            <div>
+              <dt>Footer owner</dt>
+              <dd><code>SiteFooter</code></dd>
+            </div>
+            <div>
+              <dt>Keep</dt>
+              <dd>Auth, outlet, toasts</dd>
+            </div>
+            <div>
+              <dt>Replace</dt>
+              <dd>Visual shell</dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section>
+        <h2>Current Page And MUJI Reference</h2>
+        <div class="compare-grid">
+          <article class="compare-card">
+            <figure>
+              <div class="screen-frame">
+                <img src="../muse-current-screenshots/home-desktop-full.png" alt="Current MUSE home page screenshot" />
+              </div>
+              <figcaption>
+                <strong>Current MUSE Shell</strong>
+                <span>High-contrast promo ticker, large brand mark, sparse nav, centered max-width main, large black footer.</span>
+              </figcaption>
+            </figure>
+          </article>
+          <article class="compare-card">
+            <figure>
+              <div class="screen-frame">
+                <img src="../muji-reference-screenshots/home-desktop-full.png" alt="MUJI home page screenshot" />
+              </div>
+              <figcaption>
+                <strong>MUJI Reference Shell</strong>
+                <span>Compact promo, dense header, category navigation, search, cart, login, and practical footer columns.</span>
+              </figcaption>
+            </figure>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Differences To Resolve</h2>
+        <div class="table-scroll">
+          <table class="reference-table">
+            <thead>
+              <tr>
+                <th>Area</th>
+                <th>Current MUSE</th>
+                <th>Reference behavior</th>
+                <th>Required MUSE change</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Promo bar</td>
+                <td>Black band, uppercase, wide tracking, brand slogan energy.</td>
+                <td>Small campaign strip with strong action color.</td>
+                <td>Use cedar bar, shorter copy, tighter type, practical offer/service text.</td>
+              </tr>
+              <tr>
+                <td>Header</td>
+                <td>Large MUSE logotype and only Shop, Cart, Account.</td>
+                <td>Dense utility header with search, category selector, cart, account, wishlist.</td>
+                <td>Build compact header with MUSE mark, search, actions, and category nav.</td>
+              </tr>
+              <tr>
+                <td>Main wrapper</td>
+                <td>Generous vertical padding and editorial max-width.</td>
+                <td>Commerce modules start quickly below nav.</td>
+                <td>Reduce route padding and let home/catalog hero modules control their own spacing.</td>
+              </tr>
+              <tr>
+                <td>Footer</td>
+                <td>Huge black MUSE wordmark and short nav.</td>
+                <td>Practical link columns, newsletter, social, legal, region selector.</td>
+                <td>Replace with service footer columns and small MUSE identity only.</td>
+              </tr>
+              <tr>
+                <td>Typography</td>
+                <td>Bricolage display, Inter body, large headings, negative tracking.</td>
+                <td>Neutral/condensed sans, compact body, restrained headings.</td>
+                <td>Move tokens to Arial/Roboto-like neutral sans and condensed headings.</td>
+              </tr>
+              <tr>
+                <td>Admin</td>
+                <td>Admin uses public shell and footer context.</td>
+                <td>No direct public reference; use same restraint but denser.</td>
+                <td>Create admin shell variant with operational nav and no marketing footer dominance.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>Component Requirements With Crops</h2>
+        <div class="component-grid">
+          <article class="component-card">
+            <img class="crop" src="crops/muji-global-header.png" alt="MUJI header crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag replace">Replace</span><span class="tag new">Build</span></div>
+              <h3><code>StoreHeader</code></h3>
+              <p>Compact public header with MUSE mark, search, cart, account, and secondary actions.</p>
+              <dl>
+                <div><dt>Already have</dt><dd><code>RootComponent</code>, <code>navLinks</code>, <code>AuthStatus</code></dd></div>
+                <div><dt>Get rid</dt><dd>Large sticky brand header and sparse three-link nav.</dd></div>
+                <div><dt>Need</dt><dd>Search box, category dropdown, cart icon/link, wishlist placeholder.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop" src="crops/muji-global-header.png" alt="MUJI promo and category nav crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag replace">Replace</span><span class="tag new">Build</span></div>
+              <h3><code>PromoBar</code> + <code>CategoryNav</code></h3>
+              <p>One slim campaign bar and one dense category row below the search header.</p>
+              <dl>
+                <div><dt>Already have</dt><dd>Current ticker copy in <code>__root.tsx</code>.</dd></div>
+                <div><dt>Get rid</dt><dd>Wide letter spacing and manifesto-like copy.</dd></div>
+                <div><dt>Need</dt><dd>Category link data, active states, mobile collapse.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop" src="crops/muji-global-footer.png" alt="MUJI footer crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag replace">Replace</span><span class="tag new">Build</span></div>
+              <h3><code>StoreFooter</code></h3>
+              <p>Service footer with help links, about links, top searches, follow/social, newsletter, legal.</p>
+              <dl>
+                <div><dt>Already have</dt><dd><code>SiteFooter</code> and footer nav links.</dd></div>
+                <div><dt>Get rid</dt><dd>Oversized black footer and huge MUSE wordmark.</dd></div>
+                <div><dt>Need</dt><dd>Footer link groups, newsletter form, small legal/region row.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop contain" src="crops/muji-mobile-pdp-header.png" alt="MUJI mobile header crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag new">Build</span></div>
+              <h3><code>MobileStoreHeader</code></h3>
+              <p>Small mobile header with menu, search, centered brand, cart, and compact breadcrumb handoff.</p>
+              <dl>
+                <div><dt>Already have</dt><dd>Responsive nav wraps but no mobile-specific shell.</dd></div>
+                <div><dt>Get rid</dt><dd>Header wrapping into multiple rows on narrow screens.</dd></div>
+                <div><dt>Need</dt><dd>Menu button, mobile search entry, simple account/cart actions.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop contain" src="crops/muji-mobile-footer-accordions.png" alt="MUJI mobile footer accordion crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag new">Build</span></div>
+              <h3><code>MobileFooterAccordion</code></h3>
+              <p>Mobile footer groups collapse into simple accordions, with newsletter and legal below.</p>
+              <dl>
+                <div><dt>Already have</dt><dd>Single footer component.</dd></div>
+                <div><dt>Get rid</dt><dd>Huge footer wordmark on mobile.</dd></div>
+                <div><dt>Need</dt><dd>Accordion behavior and link group data.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop" src="crops/muji-collection-product-grid.png" alt="MUJI dense product grid crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag new">Build</span></div>
+              <h3><code>AdminShell</code></h3>
+              <p>Operational shell that shares MUSE tokens but uses dense module tabs, tables, and controls.</p>
+              <dl>
+                <div><dt>Already have</dt><dd><code>AdminModulePage</code>, <code>adminModules</code>.</dd></div>
+                <div><dt>Get rid</dt><dd>Admin reliance on public marketing footer dominance.</dd></div>
+                <div><dt>Need</dt><dd>Admin header, module nav, KPI row, dense content width.</dd></div>
+              </dl>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Implementation Plan</h2>
+        <div class="three-col">
+          <article class="task-card">
+            <h3>1. Tokens</h3>
+            <p>Update <code>src/styles/app.css</code> colors, fonts, heading scale, links, buttons, forms, borders, and focus states.</p>
+          </article>
+          <article class="task-card">
+            <h3>2. Shell Components</h3>
+            <p>Extract <code>PromoBar</code>, <code>StoreHeader</code>, <code>CategoryNav</code>, and <code>StoreFooter</code> so <code>__root.tsx</code> stays small.</p>
+          </article>
+          <article class="task-card">
+            <h3>3. Admin Variant</h3>
+            <p>Keep admin routes focused by adding shared admin shell/components instead of enlarging every <code>route.tsx</code>.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="shell">Next: <a href="02-home.html">Home spec</a></div>
+    </footer>
+  </body>
+</html>

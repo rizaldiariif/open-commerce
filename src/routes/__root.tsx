@@ -6,6 +6,7 @@ import {
   Outlet,
   Scripts,
   createRootRouteWithContext,
+  useRouterState,
 } from '@tanstack/react-router'
 
 import appCss from '../styles/app.css?url'
@@ -40,7 +41,7 @@ export const Route = createRootRouteWithContext<{
       },
       {
         rel: 'stylesheet',
-        href: 'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700&display=swap',
+        href: 'https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap',
       },
       { rel: 'stylesheet', href: appCss },
     ],
@@ -52,61 +53,81 @@ export const Route = createRootRouteWithContext<{
 })
 
 const navLinks = [
-  { to: '/products', label: 'Shop' },
-  { to: '/cart', label: 'Cart' },
-  { to: '/account', label: 'Account' },
+  { to: '/products', label: 'All goods' },
+  { to: '/products', label: 'New' },
+  { to: '/products', label: 'Home' },
+  { to: '/products', label: 'Storage' },
+  { to: '/products', label: 'Stationery' },
+  { to: '/products', label: 'Travel' },
 ] as const
 
 function RootComponent() {
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  })
+  const isAdmin = pathname.startsWith('/admin')
+
   return (
     <RootDocument>
       <ToastProvider>
-        <div className="flex min-h-screen flex-col bg-paper text-ink">
-          {/* Shop-window ticker decal */}
-          <div className="overflow-hidden border-b border-ink bg-band text-band-fg">
-            <p className="m-0 px-4 py-2 text-center text-[0.66rem] font-semibold uppercase tracking-[0.28em]">
-              Free shipping over Rp500.000 · Made in limited runs · New objects
-              every season
+        <div className={`app-shell ${isAdmin ? 'admin-shell' : ''}`}>
+          <div className="promo-bar">
+            <p>
+              {isAdmin
+                ? 'MUSE operations workspace'
+                : 'Free shipping over Rp500.000 · New everyday goods are ready now'}
             </p>
           </div>
 
-          <header className="sticky top-0 z-40 border-b border-ink bg-paper/85 backdrop-blur">
-            <div className="mx-auto flex w-full max-w-[1240px] items-center justify-between gap-6 px-5 py-4 md:px-8">
+          <header className="store-header">
+            <div className="store-header-main">
               <Link
                 to="/"
                 aria-label="Muse home"
-                className="font-display text-[1.7rem] font-extrabold leading-none tracking-[-0.05em] no-underline"
+                className="store-brand"
               >
                 MUSE
               </Link>
-              <nav
-                aria-label="Primary navigation"
-                className="flex flex-wrap items-center gap-1"
-              >
+              <form className="store-search" action="/products" role="search">
+                <select aria-label="Search category" defaultValue="all">
+                  <option value="all">All categories</option>
+                  <option value="home">Home</option>
+                  <option value="storage">Storage</option>
+                  <option value="stationery">Stationery</option>
+                </select>
+                <input
+                  name="q"
+                  type="search"
+                  placeholder="What are you looking for?"
+                  aria-label="Search products"
+                />
+                <button type="submit">Search</button>
+              </form>
+              <nav aria-label="Account navigation" className="header-actions">
+                <Link to="/cart">Cart</Link>
+                <AuthStatus />
+              </nav>
+            </div>
+            {!isAdmin ? (
+              <nav className="category-nav" aria-label="Primary navigation">
                 {navLinks.map((link) => (
                   <Link
-                    key={link.to}
+                    key={link.label}
                     to={link.to}
-                    className="px-3 py-2 text-[0.8rem] font-semibold uppercase tracking-[0.1em] text-muted no-underline transition-colors hover:text-ink"
-                    activeProps={{
-                      className:
-                        'px-3 py-2 text-[0.8rem] font-semibold uppercase tracking-[0.1em] text-ink no-underline',
-                    }}
+                    activeProps={{ 'data-active': 'true' }}
                   >
                     {link.label}
                   </Link>
                 ))}
-                <span className="mx-2 hidden h-4 w-px bg-line sm:block" />
-                <AuthStatus />
               </nav>
-            </div>
+            ) : null}
           </header>
 
-          <main className="mx-auto w-full max-w-[1240px] grow px-5 py-12 md:px-8 md:py-20">
+          <main className="app-main">
             <Outlet />
           </main>
 
-          <SiteFooter />
+          {!isAdmin ? <SiteFooter /> : null}
         </div>
       </ToastProvider>
     </RootDocument>
@@ -114,45 +135,57 @@ function RootComponent() {
 }
 
 function SiteFooter() {
+  const footerGroups = [
+    {
+      title: 'Get help',
+      links: ['Shipping policy', 'Returns', 'FAQ', 'Contact us'],
+    },
+    {
+      title: 'About',
+      links: ['About MUSE', 'Materials', 'Store information', 'Care guide'],
+    },
+    {
+      title: 'Top searches',
+      links: ['Storage', 'Bags', 'Tableware', 'Stationery'],
+    },
+  ]
+
   return (
-    <footer className="mt-16 bg-band text-band-fg">
-      <div className="mx-auto w-full max-w-[1240px] px-5 py-16 md:px-8">
-        <div className="flex flex-col gap-12 md:flex-row md:items-end md:justify-between">
-          <div className="max-w-md">
-            <p className="m-0 text-[0.66rem] font-semibold uppercase tracking-[0.28em] text-band-fg/55">
-              Muse Studio
-            </p>
-            <p className="mt-4 font-body text-lg leading-relaxed text-band-fg/80">
-              Considered everyday objects, made in limited runs and built to
-              outlast the season.
-            </p>
+    <footer className="store-footer">
+      <div className="store-footer-main">
+        {footerGroups.map((group) => (
+          <section key={group.title}>
+            <h2>{group.title}</h2>
+            <ul>
+              {group.links.map((label) => (
+                <li key={label}>
+                  <Link to="/products">{label}</Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+        <section className="newsletter-panel">
+          <h2>Subscribe</h2>
+          <p>
+            Receive product notes, care guides, and seasonal arrivals from
+            MUSE.
+          </p>
+          <div className="newsletter-form">
+            <input
+              type="email"
+              placeholder="Email address"
+              aria-label="Email address"
+            />
+            <button type="button">Sign up</button>
           </div>
-          <nav
-            aria-label="Footer navigation"
-            className="flex flex-wrap gap-x-8 gap-y-3"
-          >
-            {navLinks.slice(0, 3).map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className="text-[0.8rem] font-semibold uppercase tracking-[0.12em] text-band-fg/70 no-underline transition-colors hover:text-band-fg"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-        <Link
-          to="/"
-          aria-hidden="true"
-          tabIndex={-1}
-          className="mt-12 block font-display text-[clamp(4rem,18vw,13rem)] font-extrabold leading-[0.82] tracking-[-0.06em] text-band-fg no-underline"
-        >
+        </section>
+      </div>
+      <div className="store-footer-bottom">
+        <Link to="/" className="store-footer-brand">
           MUSE
         </Link>
-        <p className="mt-6 text-[0.74rem] text-band-fg/45">
-          © {new Date().getFullYear()} Muse Commerce. All objects considered.
-        </p>
+        <p>© {new Date().getFullYear()} Muse Commerce. All goods considered.</p>
       </div>
     </footer>
   )

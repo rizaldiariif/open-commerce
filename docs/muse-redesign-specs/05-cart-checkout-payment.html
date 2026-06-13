@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MUSE Cart Checkout Payment Spec</title>
+    <link rel="stylesheet" href="spec.css" />
+  </head>
+  <body>
+    <div class="topbar">Checkout path target: compact rows, clear totals, quiet forms, one obvious next action.</div>
+    <header class="site-header">
+      <div class="shell">
+        <h1 class="brand">Cart Checkout Payment</h1>
+        <p class="meta">Applies to <code>/cart</code>, <code>/checkout</code>, <code>/payment/$orderNumber</code><br />Customer checkout path</p>
+      </div>
+    </header>
+    <nav class="doc-nav" aria-label="Spec pages">
+      <div class="shell">
+        <a href="00-index.html">Index</a>
+        <a href="01-global-shell.html">Global Shell</a>
+        <a href="02-home.html">Home</a>
+        <a href="03-catalog.html">Catalog</a>
+        <a href="04-product-detail.html">Product Detail</a>
+        <a href="05-cart-checkout-payment.html">Cart Checkout</a>
+        <a href="06-account-auth.html">Account Auth</a>
+        <a href="07-admin.html">Admin</a>
+      </div>
+    </nav>
+
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <h1>Checkout Path Requirement</h1>
+          <p>
+            Bring cart, checkout, and payment into the same quiet retail system:
+            table-like line items, compact quantity controls, clear order
+            summary, restrained form sections, coupon feedback, and payment
+            status panels.
+          </p>
+          <p class="note">
+            No dedicated MUJI cart/checkout screenshot was captured in this
+            pass. This spec uses the MUJI purchase panel, global footer, and
+            form/control density as the reference for checkout controls.
+          </p>
+        </div>
+        <aside class="summary-card">
+          <dl>
+            <div><dt>Cart route</dt><dd><code>src/routes/cart/route.tsx</code></dd></div>
+            <div><dt>Checkout route</dt><dd><code>src/routes/checkout/route.tsx</code></dd></div>
+            <div><dt>Payment route</dt><dd><code>src/routes/payment/$orderNumber.tsx</code></dd></div>
+            <div><dt>Target</dt><dd>Compact purchase flow</dd></div>
+          </dl>
+        </aside>
+      </section>
+
+      <section>
+        <h2>Current Cart And MUJI Control Reference</h2>
+        <div class="compare-grid">
+          <article class="compare-card">
+            <figure>
+              <div class="screen-frame short">
+                <img src="../muse-current-screenshots/cart-desktop-full.png" alt="Current MUSE cart screenshot" />
+              </div>
+              <figcaption>
+                <strong>Current MUSE Cart</strong>
+                <span>Signed-out access state in captured screenshot; route also supports cart rows and summary when authenticated.</span>
+              </figcaption>
+            </figure>
+          </article>
+          <article class="compare-card">
+            <figure>
+              <div class="screen-frame short">
+                <img src="crops/muji-pdp-purchase-panel.png" alt="MUJI purchase panel crop" />
+              </div>
+              <figcaption>
+                <strong>MUJI Control Reference</strong>
+                <span>Compact quantity stepper, primary CTA, thin dividers, restrained information hierarchy.</span>
+              </figcaption>
+            </figure>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Current Checkout And MUJI Form Reference</h2>
+        <div class="compare-grid">
+          <article class="compare-card">
+            <figure>
+              <div class="screen-frame short">
+                <img src="../muse-current-screenshots/checkout-desktop-full.png" alt="Current MUSE checkout screenshot" />
+              </div>
+              <figcaption>
+                <strong>Current MUSE Checkout</strong>
+                <span>Signed-out access state in captured screenshot; route has form sections, coupon, and order summary when authenticated.</span>
+              </figcaption>
+            </figure>
+          </article>
+          <article class="compare-card">
+            <figure>
+              <div class="screen-frame short">
+                <img src="crops/muji-global-footer.png" alt="MUJI footer and newsletter crop" />
+              </div>
+              <figcaption>
+                <strong>MUJI Form/Footer Reference</strong>
+                <span>Compact form field, signup button, service links, and quiet thin-border layout.</span>
+              </figcaption>
+            </figure>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Differences To Resolve</h2>
+        <div class="table-scroll">
+          <table class="reference-table">
+            <thead>
+              <tr>
+                <th>Area</th>
+                <th>Current MUSE</th>
+                <th>Reference behavior</th>
+                <th>Required MUSE change</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Access states</td>
+                <td>Large content page with primary/secondary action row.</td>
+                <td>Quiet utility state inside the retail shell.</td>
+                <td>Restyle <code>AccessRequired</code> to be compact and page-specific.</td>
+              </tr>
+              <tr>
+                <td>Cart rows</td>
+                <td>Route supports cards with image, details, quantity form, remove, line total.</td>
+                <td>Rows should be table-like, scannable, and compact.</td>
+                <td>Build <code>CartLineItem</code> with shared <code>QuantityStepper</code>.</td>
+              </tr>
+              <tr>
+                <td>Summary</td>
+                <td><code>cart-summary</code> exists and can become sticky.</td>
+                <td>Totals and CTA should be visually quiet but obvious.</td>
+                <td>Extract <code>OrderSummary</code> for cart, checkout, and payment.</td>
+              </tr>
+              <tr>
+                <td>Checkout forms</td>
+                <td>Form sections are route-local cards with many fields.</td>
+                <td>Thin-border sections, compact labels, stable two-column grids.</td>
+                <td>Build shared <code>CheckoutFormSection</code> and <code>PublicTextField</code>.</td>
+              </tr>
+              <tr>
+                <td>Coupon</td>
+                <td><code>CouponFeedback</code> exists only in checkout route.</td>
+                <td>Small inline feedback near field.</td>
+                <td>Extract <code>CouponField</code> with consistent success/error text.</td>
+              </tr>
+              <tr>
+                <td>Payment</td>
+                <td>Separate payment route with status and retry behavior.</td>
+                <td>Payment state should read like an order action panel.</td>
+                <td>Build <code>PaymentStatusPanel</code> and reuse <code>OrderSummary</code>.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>Component Requirements With Crops</h2>
+        <div class="component-grid">
+          <article class="component-card">
+            <img class="crop" src="crops/muji-pdp-purchase-panel.png" alt="MUJI quantity and CTA crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag keep">Extract</span><span class="tag replace">Restyle</span></div>
+              <h3><code>QuantityStepper</code></h3>
+              <p>Shared minus/input/plus control for PDP and cart item quantity updates.</p>
+              <dl>
+                <div><dt>Already have</dt><dd>PDP number input and cart quantity form.</dd></div>
+                <div><dt>Get rid</dt><dd>Plain number field as the only visible control.</dd></div>
+                <div><dt>Need</dt><dd>Min/max, disabled state, submit integration, no layout shift.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop tall" src="crops/muji-collection-product-grid.png" alt="MUJI product row/card density crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag new">Build</span></div>
+              <h3><code>CartLineItem</code></h3>
+              <p>Compact row with thumbnail, product name, variant/options, availability warning, quantity, remove, line total.</p>
+              <dl>
+                <div><dt>Already have</dt><dd>Cart item data and all mutation handlers.</dd></div>
+                <div><dt>Get rid</dt><dd>Route-local cart article markup.</dd></div>
+                <div><dt>Need</dt><dd>Shared row component with mobile stack and desktop table alignment.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop" src="crops/muji-pdp-purchase-panel.png" alt="MUJI order action panel crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag keep">Extract</span><span class="tag replace">Restyle</span></div>
+              <h3><code>OrderSummary</code></h3>
+              <p>Reusable summary for subtotal, discount, shipping, total, warnings, and next action.</p>
+              <dl>
+                <div><dt>Already have</dt><dd><code>cart-summary</code> and <code>checkout-summary</code>.</dd></div>
+                <div><dt>Get rid</dt><dd>Duplicated summary markup across cart/checkout/payment.</dd></div>
+                <div><dt>Need</dt><dd>Slot for CTA, warning, coupon, and payment status.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop" src="crops/muji-global-footer.png" alt="MUJI compact form crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag keep">Extract</span><span class="tag replace">Restyle</span></div>
+              <h3><code>CheckoutFormSection</code></h3>
+              <p>Thin-border section wrapper for contact, saved address, shipping address, notes, and payment actions.</p>
+              <dl>
+                <div><dt>Already have</dt><dd><code>checkout-card</code>, <code>AddressFields</code>, contact fields.</dd></div>
+                <div><dt>Get rid</dt><dd>Heavy card feel and inconsistent route-local field groups.</dd></div>
+                <div><dt>Need</dt><dd>Shared label/input/select/textarea primitives.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop" src="crops/muji-global-footer.png" alt="MUJI newsletter field crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag keep">Extract</span></div>
+              <h3><code>CouponField</code></h3>
+              <p>Compact coupon input with small validation feedback and uppercase transform.</p>
+              <dl>
+                <div><dt>Already have</dt><dd><code>CouponFeedback</code> and coupon state in checkout.</dd></div>
+                <div><dt>Get rid</dt><dd>Coupon logic embedded directly in checkout route JSX.</dd></div>
+                <div><dt>Need</dt><dd>Reusable field component and preview feedback slot.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop" src="crops/muji-pdp-purchase-panel.png" alt="MUJI action panel crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag new">Build</span></div>
+              <h3><code>PaymentStatusPanel</code></h3>
+              <p>Payment state, retry/open invoice action, status message, and order metadata.</p>
+              <dl>
+                <div><dt>Already have</dt><dd>Payment route status helpers and invoice action.</dd></div>
+                <div><dt>Get rid</dt><dd>Route-local status panel markup if it grows.</dd></div>
+                <div><dt>Need</dt><dd>Shared style for failed, expired, paid, pending, and retry states.</dd></div>
+              </dl>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Current Components Inventory</h2>
+        <div class="table-scroll">
+          <table class="reference-table">
+            <thead>
+              <tr>
+                <th>Current piece</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>Cart</code></td>
+                <td>Keep</td>
+                <td>Keep query/mutations; extract line item and summary UI.</td>
+              </tr>
+              <tr>
+                <td><code>Checkout</code></td>
+                <td>Keep</td>
+                <td>Keep form state and submit flow; extract field sections and summary.</td>
+              </tr>
+              <tr>
+                <td><code>AddressFields</code></td>
+                <td>Keep/extract</td>
+                <td>Move to shared checkout component if reused or if route grows.</td>
+              </tr>
+              <tr>
+                <td><code>CouponFeedback</code></td>
+                <td>Extract</td>
+                <td>Pair with <code>CouponField</code>.</td>
+              </tr>
+              <tr>
+                <td><code>Payment</code></td>
+                <td>Keep</td>
+                <td>Keep payment status helpers; compose <code>PaymentStatusPanel</code> and <code>OrderSummary</code>.</td>
+              </tr>
+              <tr>
+                <td><code>AccessRequired</code></td>
+                <td>Keep/restyle</td>
+                <td>Make signed-out cart/checkout states compact and consistent with shell.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>Data And Build Notes</h2>
+        <div class="three-col">
+          <article class="task-card">
+            <h3>Data We Have</h3>
+            <p>Cart items, snapshots, variant options, stock validation, addresses, coupon preview, order/payment status.</p>
+          </article>
+          <article class="task-card">
+            <h3>Data We Need</h3>
+            <p>Shipping method selection, shipping cost rules, guest checkout decision, more payment method display detail.</p>
+          </article>
+          <article class="task-card">
+            <h3>Simple First Pass</h3>
+            <p>Restyle existing authenticated and unauthenticated states before changing checkout behavior.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="shell">Next: <a href="06-account-auth.html">Account and auth spec</a></div>
+    </footer>
+  </body>
+</html>

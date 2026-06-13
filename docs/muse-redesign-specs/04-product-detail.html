@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MUSE Product Detail Spec</title>
+    <link rel="stylesheet" href="spec.css" />
+  </head>
+  <body>
+    <div class="topbar">PDP target: clear purchase controls, compact information, useful detail sections.</div>
+    <header class="site-header">
+      <div class="shell">
+        <h1 class="brand">Product Detail</h1>
+        <p class="meta">Applies to <code>src/routes/products/$slug.tsx</code><br />Route: <code>/products/$slug</code></p>
+      </div>
+    </header>
+    <nav class="doc-nav" aria-label="Spec pages">
+      <div class="shell">
+        <a href="00-index.html">Index</a>
+        <a href="01-global-shell.html">Global Shell</a>
+        <a href="02-home.html">Home</a>
+        <a href="03-catalog.html">Catalog</a>
+        <a href="04-product-detail.html">Product Detail</a>
+        <a href="05-cart-checkout-payment.html">Cart Checkout</a>
+        <a href="06-account-auth.html">Account Auth</a>
+        <a href="07-admin.html">Admin</a>
+      </div>
+    </nav>
+
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <h1>Product Detail Requirement</h1>
+          <p>
+            Turn product detail into a purchase-focused layout: image gallery on
+            the left, compact purchase panel on the right, variant buttons,
+            quantity stepper, add-to-cart CTA, details accordions, and optional
+            review/content sections below.
+          </p>
+          <p class="note">
+            The current route already handles variant selection and add-to-cart.
+            Preserve behavior, but extract UI into components so the route stays
+            focused on product data, session state, and mutation handling.
+          </p>
+        </div>
+        <aside class="summary-card">
+          <dl>
+            <div><dt>Current route</dt><dd><code>ProductDetail</code></dd></div>
+            <div><dt>Current local UI</dt><dd><code>product-media</code>, <code>purchase-form</code></dd></div>
+            <div><dt>Primary data</dt><dd><code>api.storefront.getProductBySlug</code></dd></div>
+            <div><dt>Target</dt><dd>Gallery + purchase panel</dd></div>
+          </dl>
+        </aside>
+      </section>
+
+      <section>
+        <h2>Current Page And MUJI Reference</h2>
+        <div class="compare-grid">
+          <article class="compare-card">
+            <figure>
+              <div class="screen-frame">
+                <img src="../muse-current-screenshots/product-canvas-market-tote-desktop-full.png" alt="Current MUSE product detail screenshot" />
+              </div>
+              <figcaption>
+                <strong>Current MUSE Product Detail</strong>
+                <span>Large product image, text-heavy purchase area, select-based variants, simple quantity input, no detail accordions.</span>
+              </figcaption>
+            </figure>
+          </article>
+          <article class="compare-card">
+            <figure>
+              <div class="screen-frame">
+                <img src="../muji-reference-screenshots/product-notebook-desktop-full.png" alt="MUJI product detail screenshot" />
+              </div>
+              <figcaption>
+                <strong>MUJI PDP Reference</strong>
+                <span>Gallery, SKU, price, review summary, variant buttons, quantity stepper, add to cart, wishlist, accordions, reviews.</span>
+              </figcaption>
+            </figure>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Differences To Resolve</h2>
+        <div class="table-scroll">
+          <table class="reference-table">
+            <thead>
+              <tr>
+                <th>Area</th>
+                <th>Current MUSE</th>
+                <th>Reference behavior</th>
+                <th>Required MUSE change</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Gallery</td>
+                <td>Featured image and optional thumbnail row.</td>
+                <td>Square centered image, zoom affordance, thumbnails, stable media area.</td>
+                <td>Build <code>ProductGallery</code> with square stage and thumbnail rail.</td>
+              </tr>
+              <tr>
+                <td>Purchase panel</td>
+                <td>Back link, category, large title, lede, select variant, quantity input.</td>
+                <td>SKU, title, price, reviews, variant buttons, quantity stepper, CTA in one compact panel.</td>
+                <td>Build <code>PurchasePanel</code> and move description below controls.</td>
+              </tr>
+              <tr>
+                <td>Variants</td>
+                <td>Native select with stock text.</td>
+                <td>Button groups for visible option choices.</td>
+                <td>Build <code>VariantOptionGroup</code>; keep select fallback for many variants if needed.</td>
+              </tr>
+              <tr>
+                <td>Quantity</td>
+                <td>Number input.</td>
+                <td>Minus/input/plus stepper next to primary CTA.</td>
+                <td>Build shared <code>QuantityStepper</code> for PDP and cart.</td>
+              </tr>
+              <tr>
+                <td>Details</td>
+                <td>Description only, no structured details.</td>
+                <td>Accordions for product details, material/care, shipping/returns.</td>
+                <td>Build <code>DetailAccordion</code> and map available product/settings data.</td>
+              </tr>
+              <tr>
+                <td>Reviews</td>
+                <td>Not present.</td>
+                <td>Summary, filters, review list, pagination.</td>
+                <td>Mark as later unless review data is added. Reserve section style now.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>Component Requirements With Crops</h2>
+        <div class="component-grid">
+          <article class="component-card">
+            <img class="crop tall contain" src="crops/muji-pdp-gallery.png" alt="MUJI product gallery crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag keep">Restyle</span><span class="tag new">Extract</span></div>
+              <h3><code>ProductGallery</code></h3>
+              <p>Stable square gallery with featured image, thumbnails, and optional zoom affordance.</p>
+              <dl>
+                <div><dt>Already have</dt><dd><code>featuredImageUrl</code>, <code>galleryImageUrls</code>.</dd></div>
+                <div><dt>Get rid</dt><dd>Loose route-local media markup.</dd></div>
+                <div><dt>Need</dt><dd>Selected thumbnail state, fixed aspect ratio, zoom/expand button later.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop tall" src="crops/muji-pdp-purchase-panel.png" alt="MUJI purchase panel crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag replace">Replace</span><span class="tag new">Build</span></div>
+              <h3><code>PurchasePanel</code></h3>
+              <p>SKU, title, price, review link, variants, quantity, add to cart, wishlist, notices, accordions.</p>
+              <dl>
+                <div><dt>Already have</dt><dd>Product title, description, variant price, stock, add-to-cart mutation.</dd></div>
+                <div><dt>Get rid</dt><dd>Large lede above purchase controls and select-only variant UI.</dd></div>
+                <div><dt>Need</dt><dd>SKU display, compact price area, structured controls, wishlist placeholder.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop" src="crops/muji-pdp-purchase-panel.png" alt="MUJI variant button and quantity crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag new">Build</span></div>
+              <h3><code>VariantOptionGroup</code> + <code>QuantityStepper</code></h3>
+              <p>Visible option buttons and a stepper shared by PDP and cart rows.</p>
+              <dl>
+                <div><dt>Already have</dt><dd><code>selectedVariantId</code>, <code>quantity</code>, variant option values.</dd></div>
+                <div><dt>Get rid</dt><dd>Plain number field as primary quantity interface.</dd></div>
+                <div><dt>Need</dt><dd>Disabled states, out-of-stock state, min/max clamp, keyboard support.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop" src="crops/muji-pdp-purchase-panel.png" alt="MUJI accordion detail crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag new">Build</span></div>
+              <h3><code>DetailAccordion</code></h3>
+              <p>Thin-border accordions for product details, material/care, shipping, returns, and notices.</p>
+              <dl>
+                <div><dt>Already have</dt><dd>Description and store settings can cover a first pass.</dd></div>
+                <div><dt>Get rid</dt><dd>Unstructured detail copy in the purchase lead.</dd></div>
+                <div><dt>Need</dt><dd>Material, care, origin, measurements fields later.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop" src="crops/muji-pdp-size-guide.png" alt="MUJI size guide crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag later">Later</span></div>
+              <h3><code>ProductInfoSection</code></h3>
+              <p>Optional long-form content like size guide, measurements, material chart, or care guide.</p>
+              <dl>
+                <div><dt>Already have</dt><dd>No dedicated structured content yet.</dd></div>
+                <div><dt>Get rid</dt><dd>None in first pass.</dd></div>
+                <div><dt>Need</dt><dd>Product metafields or admin-managed content blocks.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop tall" src="crops/muji-pdp-review-summary.png" alt="MUJI review summary crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag later">Later</span></div>
+              <h3><code>ReviewSummary</code> + <code>ReviewList</code></h3>
+              <p>Reserve section style for rating summary, filters, popular topics, review cards, and pagination.</p>
+              <dl>
+                <div><dt>Already have</dt><dd>No review data or review routes.</dd></div>
+                <div><dt>Get rid</dt><dd>Nothing now.</dd></div>
+                <div><dt>Need</dt><dd>Review schema, moderation, customer eligibility, empty state.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop tall contain" src="crops/muji-mobile-pdp-action-stack.png" alt="MUJI mobile PDP action stack crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag new">Build</span></div>
+              <h3><code>MobilePurchaseStack</code></h3>
+              <p>Mobile-first order: product image, title, price, variants, quantity, CTA, then details.</p>
+              <dl>
+                <div><dt>Already have</dt><dd>Responsive CSS but no mobile-specific purchase ordering.</dd></div>
+                <div><dt>Get rid</dt><dd>Large desktop spacing carried into mobile.</dd></div>
+                <div><dt>Need</dt><dd>Fixed button widths, no text overflow, sticky CTA optional later.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop tall" src="crops/muji-pdp-review-list.png" alt="MUJI review list crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag later">Later</span></div>
+              <h3><code>ReviewCard</code></h3>
+              <p>Review item layout with author, rating, title, text, date, helpful actions.</p>
+              <dl>
+                <div><dt>Already have</dt><dd>No review components.</dd></div>
+                <div><dt>Get rid</dt><dd>None.</dd></div>
+                <div><dt>Need</dt><dd>Review source and moderation before building fully.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop" src="crops/muji-global-header.png" alt="MUJI breadcrumb/header crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag new">Build</span></div>
+              <h3><code>ProductBreadcrumb</code></h3>
+              <p>Small breadcrumb path from home/catalog/category to current product.</p>
+              <dl>
+                <div><dt>Already have</dt><dd>Back link to all products.</dd></div>
+                <div><dt>Get rid</dt><dd>Prominent text link as the only navigation context.</dd></div>
+                <div><dt>Need</dt><dd>Home, collection, category, product crumb labels.</dd></div>
+              </dl>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Current Components Inventory</h2>
+        <div class="table-scroll">
+          <table class="reference-table">
+            <thead>
+              <tr>
+                <th>Current piece</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>ProductDetail</code></td>
+                <td>Keep</td>
+                <td>Keep data loading, selected variant, add-to-cart handler, auth state. Compose extracted components.</td>
+              </tr>
+              <tr>
+                <td><code>product-media</code>, <code>thumbnail-row</code></td>
+                <td>Extract/restyle</td>
+                <td>Move into <code>ProductGallery</code>.</td>
+              </tr>
+              <tr>
+                <td><code>product-purchase</code>, <code>purchase-form</code></td>
+                <td>Extract/restyle</td>
+                <td>Move into <code>PurchasePanel</code>, <code>VariantOptionGroup</code>, and <code>QuantityStepper</code>.</td>
+              </tr>
+              <tr>
+                <td><code>variant-summary</code></td>
+                <td>Restyle</td>
+                <td>Make price/stock/option information compact and near controls.</td>
+              </tr>
+              <tr>
+                <td><code>form-message</code></td>
+                <td>Keep/restyle</td>
+                <td>Use quiet inline notice below CTA.</td>
+              </tr>
+              <tr>
+                <td><code>useToast</code></td>
+                <td>Keep</td>
+                <td>Continue toast notifications for add-to-cart success/error.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>Data And Build Notes</h2>
+        <div class="three-col">
+          <article class="task-card">
+            <h3>Data We Have</h3>
+            <p>Product name, category, description, featured image, gallery images, variants, prices, stock, option values.</p>
+          </article>
+          <article class="task-card">
+            <h3>Data We Need</h3>
+            <p>SKU display confirmation, material/care/origin fields, measurements, reviews, wishlist, product notices.</p>
+          </article>
+          <article class="task-card">
+            <h3>Simple First Pass</h3>
+            <p>Use variant SKU/option data where available, description in details, and static shipping/returns text from settings.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="shell">Next: <a href="05-cart-checkout-payment.html">Cart, checkout, and payment spec</a></div>
+    </footer>
+  </body>
+</html>

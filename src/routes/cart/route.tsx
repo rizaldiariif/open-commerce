@@ -1,10 +1,12 @@
-import { type FormEvent, useState } from 'react'
+import { useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useMutation, useQuery } from 'convex/react'
 
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import { CartLineItem } from '../../components/CartLineItem'
 import { AccessRequired, LoadingState } from '../../components/RouteFeedback'
+import { formatMoney } from '../../components/StorefrontProductCard'
 import { useToast } from '../../components/Toast'
 
 export const Route = createFileRoute('/cart')({
@@ -32,13 +34,9 @@ function Cart() {
   const [pendingItemId, setPendingItemId] = useState<string | null>(null)
 
   async function handleQuantitySubmit(
-    event: FormEvent<HTMLFormElement>,
     cartItemId: Id<'cartItems'>,
+    quantity: number,
   ) {
-    event.preventDefault()
-    const formData = new FormData(event.currentTarget)
-    const quantity = Number(formData.get('quantity'))
-
     setPendingItemId(cartItemId)
     try {
       await updateCartItem({ cartItemId, quantity })
@@ -132,70 +130,15 @@ function Cart() {
       <div className="cart-layout">
         <div className="cart-items">
           {cart.items.map((item) => (
-            <article key={item._id} className="cart-item">
-              {item.productSnapshot.imageUrl ? (
-                <img src={item.productSnapshot.imageUrl} alt="" />
-              ) : (
-                <div className="cart-image-placeholder">Muse</div>
-              )}
-              <div>
-                <Link
-                  to="/products/$slug"
-                  params={{ slug: item.productSnapshot.slug }}
-                  className="cart-product-link"
-                >
-                  {item.productSnapshot.name}
-                </Link>
-                <p>{item.variantSnapshot.name}</p>
-                {item.variantSnapshot.optionValues.length ? (
-                  <small>
-                    {item.variantSnapshot.optionValues
-                      .map((option) => `${option.name}: ${option.value}`)
-                      .join(', ')}
-                  </small>
-                ) : null}
-                {!item.isValid ? (
-                  <strong className="cart-warning">
-                    This item is no longer available.
-                  </strong>
-                ) : !item.isQuantityAvailable ? (
-                  <strong className="cart-warning">
-                    Only {item.availableStock} available.
-                  </strong>
-                ) : null}
-              </div>
-              <form
-                className="cart-quantity-form"
-                onSubmit={(event) =>
-                  handleQuantitySubmit(event, item._id as Id<'cartItems'>)
-                }
-              >
-                <label>
-                  Qty
-                  <input
-                    key={`${item._id}-${item.quantity}`}
-                    name="quantity"
-                    type="number"
-                    min="1"
-                    max={Math.max(1, item.availableStock)}
-                    defaultValue={item.quantity}
-                  />
-                </label>
-                <button type="submit" disabled={pendingItemId === item._id}>
-                  {pendingItemId === item._id ? 'Updating' : 'Update'}
-                </button>
-                <button
-                  type="button"
-                  disabled={pendingItemId === item._id}
-                  onClick={() => handleRemove(item._id as Id<'cartItems'>)}
-                >
-                  Remove
-                </button>
-              </form>
-              <strong className="line-total">
-                {formatMoney(item.lineTotal)}
-              </strong>
-            </article>
+            <CartLineItem
+              key={item._id}
+              item={item}
+              isPending={pendingItemId === item._id}
+              onUpdate={(cartItemId, quantity) =>
+                void handleQuantitySubmit(cartItemId, quantity)
+              }
+              onRemove={(cartItemId) => void handleRemove(cartItemId)}
+            />
           ))}
         </div>
 
@@ -228,12 +171,4 @@ function Cart() {
       </div>
     </section>
   )
-}
-
-function formatMoney(value: number) {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    maximumFractionDigits: 0,
-  }).format(value)
 }

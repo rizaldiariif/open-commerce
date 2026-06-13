@@ -1,0 +1,1412 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MUSE Redesign Reference</title>
+    <style>
+      :root {
+        --page: #ffffff;
+        --paper: #f6f6f6;
+        --ink: #191919;
+        --text: #363636;
+        --muted: #6f6f6f;
+        --line: #d9d9d9;
+        --line-strong: #b3b3b3;
+        --accent: #8a3a2d;
+        --accent-dark: #5f241b;
+        --max: 1200px;
+        color: var(--text);
+        background: var(--page);
+        font-family:
+          Arial,
+          Helvetica,
+          ui-sans-serif,
+          system-ui,
+          sans-serif;
+        font-size: 14px;
+        line-height: 1.55;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      a:hover {
+        color: var(--accent-dark);
+        text-decoration: underline;
+      }
+
+      img {
+        display: block;
+        max-width: 100%;
+      }
+
+      .topbar {
+        background: var(--accent);
+        color: #ffffff;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-align: center;
+        padding: 8px 16px;
+      }
+
+      .shell {
+        width: min(var(--max), calc(100% - 32px));
+        margin: 0 auto;
+      }
+
+      .site-header {
+        border-bottom: 1px solid var(--line);
+        background: #ffffff;
+      }
+
+      .site-header .shell {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        padding: 20px 0;
+      }
+
+      .brand {
+        margin: 0;
+        color: var(--ink);
+        font-family:
+          "Arial Narrow",
+          "Roboto Condensed",
+          Arial,
+          sans-serif;
+        font-size: clamp(1.5rem, 3vw, 2.2rem);
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        text-transform: uppercase;
+      }
+
+      .meta {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.82rem;
+        text-align: right;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 220px minmax(0, 1fr);
+        gap: 36px;
+        padding: 34px 0 72px;
+      }
+
+      .toc {
+        position: sticky;
+        top: 18px;
+        align-self: start;
+        border: 1px solid var(--line);
+        background: var(--paper);
+        padding: 16px;
+      }
+
+      .toc strong {
+        display: block;
+        margin-bottom: 10px;
+        color: var(--ink);
+        font-family:
+          "Arial Narrow",
+          Arial,
+          sans-serif;
+        font-size: 0.85rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .toc a {
+        display: block;
+        padding: 6px 0;
+        color: var(--text);
+        font-size: 0.9rem;
+      }
+
+      main {
+        min-width: 0;
+      }
+
+      section {
+        padding: 34px 0;
+        border-top: 1px solid var(--line);
+      }
+
+      section:first-child {
+        padding-top: 0;
+        border-top: 0;
+      }
+
+      h2,
+      h3 {
+        color: var(--ink);
+        font-family:
+          "Arial Narrow",
+          "Roboto Condensed",
+          Arial,
+          sans-serif;
+        line-height: 1.15;
+        text-transform: uppercase;
+      }
+
+      h2 {
+        margin: 0 0 18px;
+        font-size: clamp(1.4rem, 2.4vw, 2rem);
+      }
+
+      h3 {
+        margin: 0 0 10px;
+        font-size: 1rem;
+      }
+
+      p {
+        max-width: 72ch;
+        margin: 0 0 14px;
+      }
+
+      ul,
+      ol {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      li + li {
+        margin-top: 6px;
+      }
+
+      code {
+        border: 1px solid var(--line);
+        background: #ffffff;
+        padding: 1px 5px;
+        color: var(--ink);
+        font-size: 0.92em;
+      }
+
+      .intro {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
+        gap: 28px;
+        align-items: start;
+      }
+
+      .summary-card,
+      .note,
+      .source-list,
+      .spec-card,
+      .shot-card,
+      .step {
+        border: 1px solid var(--line);
+        background: #ffffff;
+      }
+
+      .summary-card {
+        padding: 20px;
+      }
+
+      .summary-card dl {
+        display: grid;
+        gap: 12px;
+        margin: 0;
+      }
+
+      .summary-card div {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 10px;
+      }
+
+      .summary-card div:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      dt {
+        color: var(--muted);
+      }
+
+      dd {
+        margin: 0;
+        color: var(--ink);
+        font-weight: 700;
+        text-align: right;
+      }
+
+      .note {
+        border-left: 4px solid var(--accent);
+        padding: 16px;
+        background: #fffafa;
+      }
+
+      .quick-spec-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 18px;
+      }
+
+      .quick-spec-links a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        border: 1px solid var(--line);
+        background: var(--paper);
+        padding: 6px 10px;
+        color: var(--text);
+        font-family:
+          "Arial Narrow",
+          Arial,
+          sans-serif;
+        font-size: 0.82rem;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      .quick-spec-links a:first-child {
+        border-color: var(--accent);
+        background: #fffafa;
+        color: var(--accent);
+      }
+
+      .source-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .source-list li {
+        margin: 0;
+        border-bottom: 1px solid var(--line);
+        padding: 14px 16px;
+      }
+
+      .source-list li:nth-child(odd) {
+        border-right: 1px solid var(--line);
+      }
+
+      .source-list li:nth-last-child(-n + 2) {
+        border-bottom: 0;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .spec-card {
+        padding: 18px;
+      }
+
+      .palette {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .swatch {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+
+      .chip {
+        width: 28px;
+        height: 28px;
+        flex: 0 0 auto;
+        border: 1px solid var(--line-strong);
+      }
+
+      .commerce-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .screenshot-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .shot-card {
+        overflow: hidden;
+      }
+
+      .shot-card a {
+        display: block;
+        color: inherit;
+      }
+
+      .shot-card figure {
+        margin: 0;
+      }
+
+      .shot-frame {
+        height: 360px;
+        overflow: hidden;
+        border-bottom: 1px solid var(--line);
+        background: var(--paper);
+      }
+
+      .shot-frame img {
+        width: 100%;
+        height: auto;
+      }
+
+      .shot-card figcaption {
+        display: grid;
+        gap: 5px;
+        padding: 14px 16px;
+      }
+
+      .shot-card strong {
+        color: var(--ink);
+        font-family:
+          "Arial Narrow",
+          Arial,
+          sans-serif;
+        font-size: 0.98rem;
+        text-transform: uppercase;
+      }
+
+      .shot-card span {
+        color: var(--muted);
+        font-size: 0.84rem;
+      }
+
+      .plan {
+        display: grid;
+        gap: 10px;
+        counter-reset: plan;
+      }
+
+      .step {
+        display: grid;
+        grid-template-columns: 42px minmax(0, 1fr);
+        gap: 14px;
+        align-items: start;
+        padding: 14px;
+      }
+
+      .step::before {
+        counter-increment: plan;
+        content: counter(plan, decimal-leading-zero);
+        color: var(--accent);
+        font-family:
+          "Arial Narrow",
+          Arial,
+          sans-serif;
+        font-weight: 800;
+      }
+
+      .questions {
+        display: grid;
+        gap: 10px;
+      }
+
+      .questions li {
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 10px;
+      }
+
+      .reference-table {
+        width: 100%;
+        table-layout: fixed;
+        border: 1px solid var(--line);
+        border-collapse: collapse;
+        background: #ffffff;
+      }
+
+      .table-scroll {
+        overflow-x: auto;
+      }
+
+      .reference-table th,
+      .reference-table td {
+        border: 1px solid var(--line);
+        padding: 13px 14px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      .reference-table th {
+        color: var(--muted);
+        font-family:
+          "Arial Narrow",
+          Arial,
+          sans-serif;
+        font-size: 0.82rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .reference-table code {
+        white-space: normal;
+        overflow-wrap: anywhere;
+      }
+
+      .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        min-height: 22px;
+        border: 1px solid var(--line);
+        padding: 2px 8px;
+        background: var(--paper);
+        color: var(--muted);
+        font-size: 0.76rem;
+      }
+
+      .tag.keep {
+        border-color: #c7d7c1;
+        background: #f2f7ef;
+        color: #3f6235;
+      }
+
+      .tag.replace {
+        border-color: #e1c3c9;
+        background: #fff7f8;
+        color: var(--accent);
+      }
+
+      .tag.new {
+        border-color: #c7ced9;
+        background: #f4f7fb;
+        color: #33445f;
+      }
+
+      .decision-list {
+        display: grid;
+        gap: 16px;
+      }
+
+      .decision-card {
+        border: 1px solid var(--line);
+        background: #ffffff;
+        padding: 18px;
+      }
+
+      .decision-card h3 {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .component-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .component-card {
+        border: 1px solid var(--line);
+        background: #ffffff;
+        padding: 18px;
+      }
+
+      .component-card.keep-card {
+        border-top: 4px solid #6d8b60;
+      }
+
+      .component-card.replace-card {
+        border-top: 4px solid var(--accent);
+      }
+
+      .component-card.new-card {
+        border-top: 4px solid #536a8c;
+      }
+
+      .footer {
+        border-top: 1px solid var(--line);
+        padding: 22px 0;
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+
+      @media (max-width: 900px) {
+        .layout,
+        .intro {
+          grid-template-columns: 1fr;
+        }
+
+        .toc {
+          position: static;
+        }
+
+        .grid,
+        .commerce-grid,
+        .screenshot-grid,
+        .component-grid,
+        .source-list {
+          grid-template-columns: 1fr;
+        }
+
+        .source-list li,
+        .source-list li:nth-child(odd) {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .source-list li:last-child {
+          border-bottom: 0;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .site-header .shell {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .meta {
+          text-align: left;
+        }
+
+        .shot-frame {
+          height: 300px;
+        }
+
+        .palette {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">Reference only: use observable retail patterns, not MUJI trademarks or exact trade dress.</div>
+    <header class="site-header">
+      <div class="shell">
+        <h1 class="brand">MUSE Redesign Reference</h1>
+        <p class="meta">Open Commerce storefront discovery<br />Captured 2026-06-13</p>
+      </div>
+    </header>
+
+    <div class="shell layout">
+      <nav class="toc" aria-label="Page contents">
+        <strong>Contents</strong>
+        <a href="#summary">Summary</a>
+        <a href="#sources">Sources</a>
+        <a href="#principles">Principles</a>
+        <a href="#visual">Visual specs</a>
+        <a href="#commerce">Commerce UX</a>
+        <a href="#screenshots">Screenshots</a>
+        <a href="#page-specs">Page specs</a>
+        <a href="#route-map">Route map</a>
+        <a href="#component-inventory">Component inventory</a>
+        <a href="#fit">Current app fit</a>
+        <a href="#plan">Plan</a>
+        <a href="#decisions">Decisions</a>
+      </nav>
+
+      <main>
+        <section id="summary">
+          <div class="intro">
+            <div>
+              <h2>Summary</h2>
+              <p>
+                This page gathers public MUJI references and turns them into a
+                practical redesign guide for the Open Commerce storefront. The
+                goal is a product-first, quiet, utilitarian store experience.
+              </p>
+              <p class="note">
+                Boundary: do not copy MUJI logos, proprietary imagery, exact
+                copy, or trade dress one-to-one. Translate the observed
+                principles into an original store identity.
+              </p>
+              <div class="quick-spec-links" aria-label="Detailed page specs">
+                <a href="muse-redesign-specs/00-index.html">Open spec index</a>
+                <a href="muse-redesign-specs/01-global-shell.html">Global shell</a>
+                <a href="muse-redesign-specs/02-home.html">Home</a>
+                <a href="muse-redesign-specs/03-catalog.html">Catalog</a>
+                <a href="muse-redesign-specs/04-product-detail.html">Product detail</a>
+                <a href="muse-redesign-specs/05-cart-checkout-payment.html">Cart checkout</a>
+                <a href="muse-redesign-specs/06-account-auth.html">Account auth</a>
+                <a href="muse-redesign-specs/07-admin.html">Admin</a>
+              </div>
+            </div>
+            <aside class="summary-card" aria-label="Reference summary">
+              <dl>
+                <div>
+                  <dt>Reference pages</dt>
+                  <dd>3</dd>
+                </div>
+                <div>
+                  <dt>Screenshots</dt>
+                  <dd>6</dd>
+                </div>
+                <div>
+                  <dt>Desktop width</dt>
+                  <dd>1440px</dd>
+                </div>
+                <div>
+                  <dt>Mobile width</dt>
+                  <dd>390px</dd>
+                </div>
+              </dl>
+            </aside>
+          </div>
+        </section>
+
+        <section id="sources">
+          <h2>Sources Reviewed</h2>
+          <ul class="source-list">
+            <li><a href="https://www.muji.us/">MUJI USA homepage</a></li>
+            <li><a href="https://www.muji.us/collections/stationery">MUJI USA stationery collection</a></li>
+            <li><a href="https://www.muji.us/products/high-quality-paper-open-flat-lined-dotted-notebook">MUJI USA notebook product detail</a></li>
+            <li><a href="https://www.muji.com/jp/about/en/">MUJI concept page</a></li>
+            <li><a href="https://www.ryohin-keikaku.jp/en/about-muji">Ryohin Keikaku About MUJI</a></li>
+            <li><a href="https://www.muji.us/cdn/shop/t/998/assets/theme.css">MUJI USA theme CSS</a></li>
+          </ul>
+        </section>
+
+        <section id="principles">
+          <h2>Brand Principles To Translate</h2>
+          <div class="grid">
+            <article class="spec-card">
+              <h3>No-brand quality goods</h3>
+              <p>Product utility should matter more than decorative branding.</p>
+            </article>
+            <article class="spec-card">
+              <h3>Three product rules</h3>
+              <ul>
+                <li>Selection of materials</li>
+                <li>Streamlining of processes</li>
+                <li>Simplification of packaging</li>
+              </ul>
+            </article>
+            <article class="spec-card">
+              <h3>Desired feeling</h3>
+              <p>Quiet, rational, ordinary, practical, confident, and not hype-driven.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="visual">
+          <h2>Visual Specs Observed</h2>
+          <div class="grid">
+            <article class="spec-card">
+              <h3>Palette</h3>
+              <div class="palette">
+                <span class="swatch"><span class="chip" style="background:#ffffff"></span>#ffffff</span>
+                <span class="swatch"><span class="chip" style="background:#191919"></span>#191919</span>
+                <span class="swatch"><span class="chip" style="background:#363636"></span>#363636</span>
+                <span class="swatch"><span class="chip" style="background:#808080"></span>#808080</span>
+                <span class="swatch"><span class="chip" style="background:#b3b3b3"></span>#b3b3b3</span>
+                <span class="swatch"><span class="chip" style="background:#8a3a2d"></span>#8a3a2d MUSE cedar</span>
+                <span class="swatch"><span class="chip" style="background:#5f241b"></span>#5f241b hover</span>
+                <span class="swatch"><span class="chip" style="background:#f6f6f6"></span>#f6f6f6</span>
+                <span class="swatch"><span class="chip" style="background:#ededed"></span>#ededed</span>
+              </div>
+            </article>
+            <article class="spec-card">
+              <h3>Typography</h3>
+              <ul>
+                <li>Roboto-like neutral sans for body text.</li>
+                <li>Condensed sans for headings, product titles, and controls.</li>
+                <li>Compact body size around <code>14px</code>.</li>
+                <li>Restrained uppercase headings around <code>26px</code> to <code>30px</code>.</li>
+              </ul>
+            </article>
+            <article class="spec-card">
+              <h3>Shape</h3>
+              <ul>
+                <li>Flat white and light-gray surfaces.</li>
+                <li>Thin borders and minimal shadows.</li>
+                <li>Radius usually <code>0px</code> to <code>3px</code>.</li>
+              </ul>
+            </article>
+            <article class="spec-card">
+              <h3>Image language</h3>
+              <ul>
+                <li>Mostly square product images.</li>
+                <li>Clean, centered objects on white or light-gray backgrounds.</li>
+                <li>Seasonal editorial images when they explain a category.</li>
+              </ul>
+            </article>
+            <article class="spec-card">
+              <h3>Layout</h3>
+              <ul>
+                <li>Max content width around <code>1200px</code>.</li>
+                <li>Modest gutters near <code>20px</code>.</li>
+                <li>Commerce modules instead of oversized brand statements.</li>
+              </ul>
+            </article>
+            <article class="spec-card">
+              <h3>Avoid</h3>
+              <ul>
+                <li>Dark lifestyle imagery.</li>
+                <li>Heavy gradients and decorative illustration.</li>
+                <li>Oversized hero type for ordinary shop sections.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section id="commerce">
+          <h2>Commerce UX Specs Observed</h2>
+          <div class="commerce-grid">
+            <article class="spec-card">
+              <h3>Global navigation</h3>
+              <p>Dense category navigation with Sale, New, Women, Men, Accessories, Travel, Furniture, Home, Health & Beauty, Stationery, Food, and Rewards.</p>
+              <p>Header includes cart, wishlist, login/account, and search/category access.</p>
+            </article>
+            <article class="spec-card">
+              <h3>Homepage</h3>
+              <p>Promo hero carousel, New Arrivals, seasonal essentials, gift modules, editorial/news cards, and a practical footer.</p>
+            </article>
+            <article class="spec-card">
+              <h3>Collection page</h3>
+              <p>Collection banner, category modules, square product grid, price, title, short description, full-details link, and quick-shop action.</p>
+            </article>
+            <article class="spec-card">
+              <h3>Product detail page</h3>
+              <p>Breadcrumb, gallery, SKU, title, price, reviews, variants, quantity, add to cart, notices, details, material/care, shipping/returns, reviews, and Q&A.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="screenshots">
+          <h2>Screenshot References</h2>
+          <p>Click any image card to open the full-resolution screenshot.</p>
+          <div class="screenshot-grid">
+            <article class="shot-card">
+              <a href="muji-reference-screenshots/home-desktop-full.png">
+                <figure>
+                  <div class="shot-frame">
+                    <img src="muji-reference-screenshots/home-desktop-full.png" alt="MUJI USA homepage desktop screenshot" loading="lazy" />
+                  </div>
+                  <figcaption>
+                    <strong>Homepage desktop</strong>
+                    <span>1440px full-page capture. Promo bar, header, hero, modules, footer.</span>
+                  </figcaption>
+                </figure>
+              </a>
+            </article>
+            <article class="shot-card">
+              <a href="muji-reference-screenshots/home-mobile-full.png">
+                <figure>
+                  <div class="shot-frame">
+                    <img src="muji-reference-screenshots/home-mobile-full.png" alt="MUJI USA homepage mobile screenshot" loading="lazy" />
+                  </div>
+                  <figcaption>
+                    <strong>Homepage mobile</strong>
+                    <span>390px full-page capture. Mobile stack and condensed navigation.</span>
+                  </figcaption>
+                </figure>
+              </a>
+            </article>
+            <article class="shot-card">
+              <a href="muji-reference-screenshots/collection-stationery-desktop-full.png">
+                <figure>
+                  <div class="shot-frame">
+                    <img src="muji-reference-screenshots/collection-stationery-desktop-full.png" alt="MUJI stationery collection desktop screenshot" loading="lazy" />
+                  </div>
+                  <figcaption>
+                    <strong>Collection desktop</strong>
+                    <span>Category modules, product grid, badges, and footer. Some lazy placeholders are visible.</span>
+                  </figcaption>
+                </figure>
+              </a>
+            </article>
+            <article class="shot-card">
+              <a href="muji-reference-screenshots/collection-stationery-mobile-full.png">
+                <figure>
+                  <div class="shot-frame">
+                    <img src="muji-reference-screenshots/collection-stationery-mobile-full.png" alt="MUJI stationery collection mobile screenshot" loading="lazy" />
+                  </div>
+                  <figcaption>
+                    <strong>Collection mobile</strong>
+                    <span>390px full-page capture of mobile collection flow.</span>
+                  </figcaption>
+                </figure>
+              </a>
+            </article>
+            <article class="shot-card">
+              <a href="muji-reference-screenshots/product-notebook-desktop-full.png">
+                <figure>
+                  <div class="shot-frame">
+                    <img src="muji-reference-screenshots/product-notebook-desktop-full.png" alt="MUJI notebook product detail desktop screenshot" loading="lazy" />
+                  </div>
+                  <figcaption>
+                    <strong>Product desktop</strong>
+                    <span>Gallery, SKU, reviews, variants, quantity, cart action, accordions, reviews.</span>
+                  </figcaption>
+                </figure>
+              </a>
+            </article>
+            <article class="shot-card">
+              <a href="muji-reference-screenshots/product-notebook-mobile-full.png">
+                <figure>
+                  <div class="shot-frame">
+                    <img src="muji-reference-screenshots/product-notebook-mobile-full.png" alt="MUJI notebook product detail mobile screenshot" loading="lazy" />
+                  </div>
+                  <figcaption>
+                    <strong>Product mobile</strong>
+                    <span>390px capture showing mobile purchase controls and detail stack.</span>
+                  </figcaption>
+                </figure>
+              </a>
+            </article>
+          </div>
+        </section>
+
+        <section id="page-specs">
+          <h2>Detailed Page Specs</h2>
+          <p>
+            The detailed implementation planning now lives in separate HTML
+            files. Each page spec compares our current design with the closest
+            MUJI reference, lists differences, and maps component requirements
+            to cropped reference images.
+          </p>
+          <div class="grid">
+            <article class="spec-card">
+              <h3><a href="muse-redesign-specs/00-index.html">Spec index</a></h3>
+              <p>Route map, crop asset library, and implementation rules.</p>
+            </article>
+            <article class="spec-card">
+              <h3><a href="muse-redesign-specs/01-global-shell.html">Global shell</a></h3>
+              <p>Header, promo bar, category navigation, search, account/cart actions, and footer.</p>
+            </article>
+            <article class="spec-card">
+              <h3><a href="muse-redesign-specs/02-home.html">Home</a></h3>
+              <p>Hero promo, category rail, seasonal rows, editorial tiles, and product cards.</p>
+            </article>
+            <article class="spec-card">
+              <h3><a href="muse-redesign-specs/03-catalog.html">Catalog</a></h3>
+              <p>Collection header, category tiles, filter/sort, product grid, and loading states.</p>
+            </article>
+            <article class="spec-card">
+              <h3><a href="muse-redesign-specs/04-product-detail.html">Product detail</a></h3>
+              <p>Gallery, purchase panel, variant controls, quantity stepper, details, and reviews.</p>
+            </article>
+            <article class="spec-card">
+              <h3><a href="muse-redesign-specs/05-cart-checkout-payment.html">Cart checkout</a></h3>
+              <p>Cart rows, checkout forms, order summary, coupon, and payment state panels.</p>
+            </article>
+            <article class="spec-card">
+              <h3><a href="muse-redesign-specs/06-account-auth.html">Account auth</a></h3>
+              <p>Login, register, account dashboard, order list, order detail, and access states.</p>
+            </article>
+            <article class="spec-card">
+              <h3><a href="muse-redesign-specs/07-admin.html">Admin</a></h3>
+              <p>Operational shell, module nav, KPI bar, data tables, forms, and media picker.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="route-map">
+          <h2>Route To Reference Map</h2>
+          <p>
+            This maps our current pages to the closest MUJI screenshot reference
+            and names the exact redesign work for each route. Routes without a
+            direct MUJI screenshot should inherit the same shell, form, table,
+            and summary patterns from the captured references.
+          </p>
+          <div class="quick-spec-links" aria-label="Route-specific detailed specs">
+            <a href="muse-redesign-specs/00-index.html">Spec index</a>
+            <a href="muse-redesign-specs/01-global-shell.html">Global shell</a>
+            <a href="muse-redesign-specs/02-home.html">Home</a>
+            <a href="muse-redesign-specs/03-catalog.html">Catalog</a>
+            <a href="muse-redesign-specs/04-product-detail.html">Product detail</a>
+            <a href="muse-redesign-specs/05-cart-checkout-payment.html">Cart checkout</a>
+            <a href="muse-redesign-specs/06-account-auth.html">Account auth</a>
+            <a href="muse-redesign-specs/07-admin.html">Admin</a>
+          </div>
+          <div class="table-scroll">
+            <table class="reference-table">
+              <thead>
+                <tr>
+                  <th>Our page</th>
+                  <th>Reference screenshot</th>
+                  <th>Change into</th>
+                  <th>Current pieces</th>
+                  <th>Remove or replace</th>
+                  <th>Missing pieces</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <code>src/routes/__root.tsx</code>
+                    <div class="tag-list">
+                      <span class="tag replace">global shell</span>
+                    </div>
+                  </td>
+                  <td>
+                    <a href="muji-reference-screenshots/home-desktop-full.png">Homepage desktop</a>,
+                    <a href="muji-reference-screenshots/home-mobile-full.png">Homepage mobile</a>
+                  </td>
+                  <td>
+                    Compact retail shell: promo bar, logo/name, category nav,
+                    search, account/cart actions, practical footer columns.
+                  </td>
+                  <td>
+                    <code>RootComponent</code>, <code>SiteFooter</code>,
+                    <code>AuthStatus</code>, <code>ToastProvider</code>,
+                    three-link nav.
+                  </td>
+                  <td>
+                    Large MUSE wordmark footer, black editorial band,
+                    oversized display type, narrow three-link nav only.
+                  </td>
+                  <td>
+                    <code>PromoBar</code>, <code>StoreHeader</code>,
+                    <code>CategoryNav</code>, <code>SearchBox</code>,
+                    <code>FooterLinkColumns</code>, <code>NewsletterSignup</code>.
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <code>src/routes/index.tsx</code>
+                    <div class="tag-list">
+                      <span class="tag replace">home</span>
+                    </div>
+                  </td>
+                  <td>
+                    <a href="muji-reference-screenshots/home-desktop-full.png">Homepage desktop</a>,
+                    <a href="muji-reference-screenshots/home-mobile-full.png">Homepage mobile</a>
+                  </td>
+                  <td>
+                    Homepage becomes a sequence of commerce modules: hero promo,
+                    New Arrivals, seasonal essentials, gift/editorial tiles, and
+                    news cards.
+                  </td>
+                  <td>
+                    Live <code>getHome</code> data, announcement, hero image,
+                    homepage banners, featured product grid, inline
+                    <code>ProductCard</code>, <code>MetaRow</code>.
+                  </td>
+                  <td>
+                    Asymmetric hero/meta column, "limited runs" brand manifesto,
+                    price tag overlay, dark about band.
+                  </td>
+                  <td>
+                    <code>HomeHeroPromo</code>, <code>CategoryTileGrid</code>,
+                    <code>SeasonalProductStrip</code>, <code>EditorialTile</code>,
+                    shared <code>StorefrontProductCard</code>.
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <code>src/routes/products/index.tsx</code>
+                    <div class="tag-list">
+                      <span class="tag replace">collection</span>
+                    </div>
+                  </td>
+                  <td>
+                    <a href="muji-reference-screenshots/collection-stationery-desktop-full.png">Collection desktop</a>,
+                    <a href="muji-reference-screenshots/collection-stationery-mobile-full.png">Collection mobile</a>
+                  </td>
+                  <td>
+                    Product listing becomes a quiet collection page with category
+                    tiles, optional collection banner, filter/sort strip, square
+                    cards, and practical product labels.
+                  </td>
+                  <td>
+                    Live <code>listProducts</code>, category chips,
+                    <code>product-grid</code>, duplicated product-card markup,
+                    <code>StatusBadge</code>.
+                  </td>
+                  <td>
+                    Current <code>catalog-heading</code> scale, uppercase chip row
+                    as the main category experience, price chip pinned over image.
+                  </td>
+                  <td>
+                    <code>CollectionHeader</code>, <code>CategoryTile</code>,
+                    <code>FilterSortBar</code>, <code>ProductGridSkeleton</code>,
+                    shared <code>StorefrontProductCard</code>.
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <code>src/routes/products/$slug.tsx</code>
+                    <div class="tag-list">
+                      <span class="tag replace">product detail</span>
+                    </div>
+                  </td>
+                  <td>
+                    <a href="muji-reference-screenshots/product-notebook-desktop-full.png">Product desktop</a>,
+                    <a href="muji-reference-screenshots/product-notebook-mobile-full.png">Product mobile</a>
+                  </td>
+                  <td>
+                    PDP becomes gallery left / purchase panel right on desktop,
+                    stacked on mobile, with SKU, review summary, variant buttons,
+                    quantity stepper, add-to-cart, and accordions.
+                  </td>
+                  <td>
+                    Live product query, gallery URLs, variant selection,
+                    add-to-cart mutation, login-aware CTA, message/toast.
+                  </td>
+                  <td>
+                    Select-only variant picker, oversized price summary block,
+                    generic "All products" link as primary breadcrumb.
+                  </td>
+                  <td>
+                    <code>Breadcrumbs</code>, <code>ProductGallery</code>,
+                    <code>ReviewSummary</code>, <code>VariantOptionGroup</code>,
+                    <code>QuantityStepper</code>, <code>DetailAccordion</code>.
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <code>src/routes/cart/route.tsx</code>
+                    <div class="tag-list">
+                      <span class="tag replace">cart</span>
+                    </div>
+                  </td>
+                  <td>
+                    Derived from <a href="muji-reference-screenshots/product-notebook-desktop-full.png">Product desktop</a>
+                    purchase panel and collection product rows. Direct cart
+                    reference still worth capturing.
+                  </td>
+                  <td>
+                    Cart becomes table-like line items with square thumbnails,
+                    compact quantity stepper, remove action, availability notice,
+                    and a quiet order summary.
+                  </td>
+                  <td>
+                    Cart query, quantity update/remove mutations, validation
+                    warnings, <code>cart-item</code>, <code>cart-summary</code>.
+                  </td>
+                  <td>
+                    Current heavy four-column row on mobile, expressive cart
+                    heading copy, button styles inherited from Muse system.
+                  </td>
+                  <td>
+                    <code>CartLineItem</code>, <code>QuantityStepper</code>,
+                    <code>OrderSummary</code>, <code>AvailabilityNotice</code>.
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <code>src/routes/checkout/route.tsx</code>
+                    <div class="tag-list">
+                      <span class="tag replace">checkout</span>
+                    </div>
+                  </td>
+                  <td>
+                    Derived from product detail forms and footer/form styling.
+                    Direct checkout reference is not captured because checkout is
+                    behind cart/session state.
+                  </td>
+                  <td>
+                    Checkout becomes compact form sections with restrained labels,
+                    white cards, thin borders, sticky order summary, coupon
+                    feedback, and clear payment CTA.
+                  </td>
+                  <td>
+                    Contact form, address selection, <code>AddressFields</code>,
+                    coupon preview, <code>CouponFeedback</code>, order summary.
+                  </td>
+                  <td>
+                    Large checkout cards, current high-contrast heading treatment,
+                    verbose explanatory copy.
+                  </td>
+                  <td>
+                    <code>StorefrontFormSection</code>, <code>PublicTextField</code>,
+                    <code>SavedAddressSelect</code>, <code>OrderSummary</code>.
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <code>src/routes/payment/$orderNumber.tsx</code>
+                    <div class="tag-list">
+                      <span class="tag replace">payment</span>
+                    </div>
+                  </td>
+                  <td>
+                    Derived from product detail summary panel and account order
+                    summary needs.
+                  </td>
+                  <td>
+                    Payment page becomes an order-status handoff with compact
+                    item rows, status badges, total summary, and one primary
+                    payment action.
+                  </td>
+                  <td>
+                    Payment query/action, <code>StatusBadge</code>,
+                    <code>cart-summary</code>, currently uses
+                    <code>admin-panel</code> for items.
+                  </td>
+                  <td>
+                    Customer-facing use of <code>admin-panel</code>, large
+                    catalog heading, mixed admin/storefront layout classes.
+                  </td>
+                  <td>
+                    <code>OrderStatusHeader</code>, <code>OrderLineList</code>,
+                    <code>PaymentActionPanel</code>.
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <code>src/routes/account/*</code>
+                    <div class="tag-list">
+                      <span class="tag replace">account</span>
+                    </div>
+                  </td>
+                  <td>
+                    Derived from the same collection/product shell. Direct MUJI
+                    account/order reference not captured.
+                  </td>
+                  <td>
+                    Account becomes a compact customer workspace: profile summary,
+                    order list cards/table, order detail with payment and delivery
+                    panels.
+                  </td>
+                  <td>
+                    Account landing, order table, order detail, status badges,
+                    payment retry action.
+                  </td>
+                  <td>
+                    Customer-facing <code>admin-table</code>,
+                    <code>admin-panel</code>, and <code>stack-list</code>
+                    styling.
+                  </td>
+                  <td>
+                    <code>CustomerOrderTable</code>, <code>CustomerOrderCard</code>,
+                    <code>DeliveryPanel</code>, <code>PaymentPanel</code>.
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <code>src/routes/admin/*</code>
+                    <div class="tag-list">
+                      <span class="tag replace">admin</span>
+                    </div>
+                  </td>
+                  <td>
+                    Derived from the same MUSE shell and compact typography,
+                    with denser operational layouts. MUJI ecommerce screenshots
+                    inform restraint, not admin functionality.
+                  </td>
+                  <td>
+                    Admin becomes a quiet operations workspace: compact header,
+                    module tabs, dense tables, small form fields, restrained KPI
+                    blocks, and practical media/product editors.
+                  </td>
+                  <td>
+                    <code>AdminModulePage</code>, <code>adminModules</code>,
+                    <code>Panel</code>, <code>TextField</code>,
+                    <code>TextArea</code>, <code>MediaSelect</code>,
+                    <code>MediaMultiSelect</code>, admin tables/forms/KPIs.
+                  </td>
+                  <td>
+                    Keep operational density, but remove the Muse editorial
+                    visual system: oversized headings, harsh black borders,
+                    display-font KPI treatment, and customer/admin class mixing.
+                  </td>
+                  <td>
+                    <code>AdminShell</code>, <code>AdminPageHeader</code>,
+                    <code>AdminDataTable</code>, <code>AdminFormSection</code>,
+                    <code>AdminKpiBar</code>, <code>AdminMediaGrid</code>.
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <code>src/routes/login</code>, <code>register</code>,
+                    <code>setup</code>
+                    <div class="tag-list">
+                      <span class="tag keep">functional</span>
+                      <span class="tag replace">visual</span>
+                    </div>
+                  </td>
+                  <td>
+                    Derived from MUJI form/control styling in product detail and
+                    footer newsletter.
+                  </td>
+                  <td>
+                    Auth/setup pages keep simple forms but adopt compact labels,
+                    thin borders, restrained buttons, and practical helper copy.
+                  </td>
+                  <td>
+                    <code>auth-page</code>, <code>auth-form</code>, form messages,
+                    password auth actions.
+                  </td>
+                  <td>
+                    Current expressive headings and high-contrast Muse button
+                    treatment.
+                  </td>
+                  <td>
+                    Shared <code>PublicAuthForm</code> styling only; no new
+                    business logic required.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="component-inventory">
+          <h2>Component Inventory</h2>
+          <p>
+            The current codebase has a small shared component layer and a lot of
+            route-local storefront markup. The redesign should move repeated
+            public-store UI into small reusable pieces. Admin should also be
+            redesigned, but as a denser operations variant of the same MUSE
+            system.
+          </p>
+          <div class="component-grid">
+            <article class="component-card keep-card">
+              <h3>Keep and restyle</h3>
+              <ul>
+                <li><code>AuthStatus</code>: keep session behavior; restyle links/buttons for compact header.</li>
+                <li><code>ToastProvider</code> and <code>useToast</code>: keep; restyle toast borders and actions.</li>
+                <li><code>LoadingState</code>: keep API; make skeleton match product-grid placeholders.</li>
+                <li><code>AccessRequired</code> and <code>RouteError</code>: keep; make them quieter content states.</li>
+                <li><code>StatusBadge</code>: keep labels/tone logic; restyle to small neutral status chips.</li>
+                <li><code>AddressFields</code> and <code>CouponFeedback</code>: keep logic; extract only if reuse grows.</li>
+              </ul>
+            </article>
+            <article class="component-card replace-card">
+              <h3>Remove or replace</h3>
+              <ul>
+                <li>Inline duplicated <code>ProductCard</code> markup in home and catalog.</li>
+                <li><code>MetaRow</code> and the current homepage meta column.</li>
+                <li>Homepage <code>about-band</code> dark manifesto section.</li>
+                <li><code>.product-card small</code> price-tag overlay.</li>
+                <li><code>.eyebrow::before</code> decorative line and large negative-tracking headings.</li>
+                <li>Customer use of <code>admin-table</code>, <code>admin-panel</code>, and <code>stack-list</code>.</li>
+                <li>Root footer oversized MUSE wordmark and black brand band.</li>
+              </ul>
+            </article>
+            <article class="component-card new-card">
+              <h3>Build new</h3>
+              <ul>
+                <li><code>StoreHeader</code>, <code>PromoBar</code>, <code>CategoryNav</code>, <code>SearchBox</code>.</li>
+                <li><code>StoreFooter</code>, <code>FooterLinkColumns</code>, <code>NewsletterSignup</code>.</li>
+                <li><code>StorefrontProductCard</code>, <code>ProductGrid</code>, <code>ProductGridSkeleton</code>.</li>
+                <li><code>CollectionHeader</code>, <code>CategoryTile</code>, <code>FilterSortBar</code>.</li>
+                <li><code>ProductGallery</code>, <code>VariantOptionGroup</code>, <code>QuantityStepper</code>, <code>DetailAccordion</code>.</li>
+                <li><code>OrderSummary</code>, <code>CartLineItem</code>, <code>CustomerOrderTable</code>, <code>PaymentPanel</code>.</li>
+                <li><code>AdminShell</code>, <code>AdminDataTable</code>, <code>AdminFormSection</code>, <code>AdminKpiBar</code>.</li>
+              </ul>
+            </article>
+          </div>
+
+          <div class="decision-list" style="margin-top: 18px;">
+            <article class="decision-card">
+              <h3>
+                Route file rule
+                <span class="tag keep">keep simple</span>
+              </h3>
+              <p>
+                Route files should keep data loading, mutation handlers, and
+                page-level composition only. Repeated UI belongs in shared
+                components so each <code>route.tsx</code> keeps focusing on one
+                thing.
+              </p>
+            </article>
+            <article class="decision-card">
+              <h3>
+                Admin boundary
+                <span class="tag new">redesign included</span>
+              </h3>
+              <p>
+                Admin screens are included in the redesign. They should keep
+                operational density and clear tables/forms, but use the same
+                restrained MUSE tokens instead of the current editorial Muse
+                styling. Customer pages should stop borrowing admin
+                table/panel classes.
+              </p>
+            </article>
+            <article class="decision-card">
+              <h3>
+                Data boundary
+                <span class="tag keep">preserve behavior</span>
+              </h3>
+              <p>
+                No Convex schema or checkout/payment logic needs to change for
+                the first redesign pass. The work is presentation, shared
+                components, and route composition.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section id="fit">
+          <h2>Current App Fit</h2>
+          <div class="commerce-grid">
+            <article class="spec-card">
+              <h3>What already fits</h3>
+              <ul>
+                <li>Public routes already cover home, products, product detail, cart, checkout, payment, account, and admin.</li>
+                <li>Core commerce behavior can stay mostly intact.</li>
+                <li>Route files are already reasonably focused.</li>
+              </ul>
+            </article>
+            <article class="spec-card">
+              <h3>What changes</h3>
+              <ul>
+                <li>Replace expressive Muse identity with compact retail navigation.</li>
+                <li>Move visual repetition into shared CSS/components.</li>
+                <li>Make product cards, PDP, cart, and checkout quieter and more utilitarian.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section id="plan">
+          <h2>Implementation Plan</h2>
+          <div class="plan">
+            <div class="step">Done: design tokens and shared shell are implemented with MUSE cedar, compact typography, retail header, and service footer.</div>
+            <div class="step">Done: reusable storefront components now cover product cards, quantity stepper, product gallery/detail accordions, and cart line items.</div>
+            <div class="step">Done: home and product listing routes are redesigned into commerce modules, category/filter controls, and quiet product grids.</div>
+            <div class="step">Done: product detail route now uses gallery left, purchase panel right, variant buttons, quantity stepper, and detail accordions.</div>
+            <div class="step">Done: cart and account states are brought into the same system; checkout/payment share the refreshed form, summary, and status styling.</div>
+            <div class="step">Done: admin screens use the restrained MUSE operational shell treatment without the public marketing footer/category rail.</div>
+            <div class="step">Done: <code>npm run typecheck</code>, <code>npm run build</code>, and Playwright desktop/mobile screenshot checks passed.</div>
+          </div>
+          <p class="note" style="margin-top: 18px;">
+            Deferred product work: real search behavior, wishlist, customer
+            reviews, address book management, and richer admin-managed
+            collection modules.
+          </p>
+        </section>
+
+        <section id="decisions">
+          <h2>Locked Decisions</h2>
+          <ul class="questions">
+            <li>Redesign includes customer storefront and admin screens.</li>
+            <li>The product/store name remains <strong>MUSE</strong>.</li>
+            <li>Use adjacent MUSE cedar <code>#8a3a2d</code> instead of MUJI red directly, with hover/dark accent <code>#5f241b</code>.</li>
+          </ul>
+        </section>
+      </main>
+    </div>
+
+    <footer class="footer">
+      <div class="shell">
+        HTML reference for the Open Commerce redesign discovery. Local screenshots live in
+        <code>docs/muji-reference-screenshots/</code>, with detailed page specs in
+        <code>docs/muse-redesign-specs/</code>.
+      </div>
+    </footer>
+  </body>
+</html>

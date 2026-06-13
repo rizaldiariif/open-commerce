@@ -18,31 +18,17 @@ export function AuthStatus() {
     }
   }, [current, ensureProfile, isAuthenticated])
 
-  const linkClass =
-    'px-3 py-2 text-[0.8rem] font-semibold uppercase tracking-[0.1em] text-muted no-underline transition-colors hover:text-ink'
-
   if (isLoading || current === undefined) {
-    return (
-      <span className="px-3 py-2 text-[0.74rem] uppercase tracking-[0.1em] text-faint">
-        Checking session
-      </span>
-    )
+    return <span className="header-action muted">Checking session</span>
   }
 
   if (!isAuthenticated || !current) {
     return (
       <>
-        <Link
-          to="/login"
-          search={{ redirect: undefined }}
-          className={linkClass}
-        >
+        <Link to="/login" search={{ redirect: undefined }}>
           Login
         </Link>
-        <Link
-          to="/register"
-          className="inline-flex min-h-[36px] items-center bg-ink px-4 py-2 text-[0.8rem] font-semibold uppercase tracking-[0.1em] text-paper no-underline transition-colors hover:bg-ink-soft"
-        >
+        <Link to="/register" className="header-action primary">
           Register
         </Link>
       </>
@@ -53,12 +39,11 @@ export function AuthStatus() {
 
   return (
     <>
-      <Link to="/account" className={`${linkClass} max-w-[14ch] truncate`}>
+      <Link to="/account" className="header-action truncate">
         {label}
       </Link>
       <button
         type="button"
-        className="cursor-pointer border-0 bg-transparent px-3 py-2 text-[0.8rem] font-semibold uppercase tracking-[0.1em] text-muted transition-colors hover:text-ink"
         onClick={() => {
           void signOut().then(() => navigate({ to: '/' }))
         }}

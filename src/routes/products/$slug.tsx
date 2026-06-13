@@ -4,7 +4,10 @@ import { useMutation, useQuery } from 'convex/react'
 
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import { DetailAccordion, ProductGallery } from '../../components/ProductDetailParts'
+import { QuantityStepper } from '../../components/QuantityStepper'
 import { LoadingState } from '../../components/RouteFeedback'
+import { formatMoney } from '../../components/StorefrontProductCard'
 import { useToast } from '../../components/Toast'
 
 export const Route = createFileRoute('/products/$slug')({
@@ -27,7 +30,7 @@ function ProductDetail() {
   const addToCart = useMutation(api.storefront.addToCart)
   const { notify } = useToast()
   const [selectedVariantId, setSelectedVariantId] = useState('')
-  const [quantity, setQuantity] = useState('1')
+  const [quantity, setQuantity] = useState(1)
   const [message, setMessage] = useState<{
     type: 'success' | 'error'
     text: string
@@ -63,7 +66,7 @@ function ProductDetail() {
     try {
       await addToCart({
         variantId: selectedVariant._id as Id<'productVariants'>,
-        quantity: Number(quantity),
+        quantity,
       })
       const nextMessage = { type: 'success' as const, text: 'Added to cart.' }
       setMessage(nextMessage)
@@ -106,44 +109,41 @@ function ProductDetail() {
   return (
     <section className="product-detail">
       <div className="product-media">
-        {product.featuredImageUrl ? (
-          <img src={product.featuredImageUrl} alt="" />
-        ) : (
-          <div className="detail-image-placeholder">Muse</div>
-        )}
-        {product.galleryImageUrls.length ? (
-          <div className="thumbnail-row">
-            {product.galleryImageUrls.map((url) => (
-              <img key={url} src={url} alt="" />
-            ))}
-          </div>
-        ) : null}
+        <ProductGallery
+          featuredImageUrl={product.featuredImageUrl}
+          galleryImageUrls={product.galleryImageUrls}
+          productName={product.name}
+        />
       </div>
 
       <div className="product-purchase">
         <Link to="/products" className="text-link">
-          All products
+          Home / Products
         </Link>
-        <p className="eyebrow">{product.category?.name ?? 'Muse Collection'}</p>
+        <p className="product-sku">SKU {selectedVariant?.sku ?? 'pending'}</p>
         <h1>{product.name}</h1>
-        {product.description ? (
-          <p className="lede">{product.description}</p>
-        ) : null}
+        <a className="review-link" href="#details">
+          Product details and care
+        </a>
 
         <form className="purchase-form" onSubmit={handleAddToCart}>
           <label>
             Variant
-            <select
-              value={selectedVariant?._id ?? ''}
-              onChange={(event) => setSelectedVariantId(event.target.value)}
-            >
+            <div className="variant-button-grid">
               {product.variants.map((variant) => (
-                <option key={variant._id} value={variant._id}>
-                  {variant.name} - {formatMoney(variant.price)}
-                  {variant.availableStock <= 0 ? ' - out of stock' : ''}
-                </option>
+                <button
+                  key={variant._id}
+                  type="button"
+                  data-active={
+                    selectedVariant?._id === variant._id ? 'true' : undefined
+                  }
+                  disabled={variant.availableStock <= 0}
+                  onClick={() => setSelectedVariantId(variant._id)}
+                >
+                  {variant.name}
+                </button>
               ))}
-            </select>
+            </div>
           </label>
 
           {selectedVariant ? (
@@ -169,41 +169,42 @@ function ProductDetail() {
             </div>
           ) : null}
 
-          <label>
-            Quantity
-            <input
-              type="number"
-              min="1"
-              max={selectedVariant?.availableStock ?? 1}
-              value={quantity}
-              onChange={(event) => setQuantity(event.target.value)}
-            />
-          </label>
+          <div className="purchase-actions">
+            <label>
+              Quantity
+              <QuantityStepper
+                value={quantity}
+                max={selectedVariant?.availableStock ?? 1}
+                disabled={!selectedVariant || selectedVariant.availableStock <= 0}
+                onChange={setQuantity}
+              />
+            </label>
 
-          {current === undefined ? (
-            <button type="button" disabled>
-              Checking session
-            </button>
-          ) : current === null ? (
-            <Link
-              to="/login"
-              search={{ redirect: `/products/${product.slug}` }}
-              className="primary-link"
-            >
-              Login to add to cart
-            </Link>
-          ) : (
-            <button
-              type="submit"
-              disabled={
-                isAdding ||
-                !selectedVariant ||
-                selectedVariant.availableStock <= 0
-              }
-            >
-              {isAdding ? 'Adding' : 'Add to cart'}
-            </button>
-          )}
+            {current === undefined ? (
+              <button type="button" disabled>
+                Checking session
+              </button>
+            ) : current === null ? (
+              <Link
+                to="/login"
+                search={{ redirect: `/products/${product.slug}` }}
+                className="primary-link"
+              >
+                Login to add to cart
+              </Link>
+            ) : (
+              <button
+                type="submit"
+                disabled={
+                  isAdding ||
+                  !selectedVariant ||
+                  selectedVariant.availableStock <= 0
+                }
+              >
+                {isAdding ? 'Adding' : 'Add to cart'}
+              </button>
+            )}
+          </div>
         </form>
 
         {message ? (
@@ -216,15 +217,14 @@ function ProductDetail() {
             ) : null}
           </div>
         ) : null}
+
+        <div id="details">
+          <DetailAccordion
+            description={product.description}
+            categoryName={product.category?.name}
+          />
+        </div>
       </div>
     </section>
   )
-}
-
-function formatMoney(value: number) {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    maximumFractionDigits: 0,
-  }).format(value)
 }

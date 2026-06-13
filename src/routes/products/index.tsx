@@ -1,9 +1,12 @@
+import { useMemo, useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 
 import { api } from '../../../convex/_generated/api'
 import { LoadingState } from '../../components/RouteFeedback'
-import { StatusBadge } from '../../components/StatusBadge'
+import { StorefrontProductCard } from '../../components/StorefrontProductCard'
+
+type SortMode = 'featured' | 'price_asc' | 'price_desc' | 'name'
 
 export const Route = createFileRoute('/products/')({
   head: () => ({
@@ -20,6 +23,33 @@ export const Route = createFileRoute('/products/')({
 
 function ProductsIndex() {
   const catalog = useQuery(api.storefront.listProducts)
+  const [activeCategoryId, setActiveCategoryId] = useState<string>('all')
+  const [inStockOnly, setInStockOnly] = useState(false)
+  const [sortMode, setSortMode] = useState<SortMode>('featured')
+
+  const products = useMemo(() => {
+    if (!catalog) return []
+
+    const filtered = catalog.products.filter((product) => {
+      const categoryMatches =
+        activeCategoryId === 'all' || product.category?._id === activeCategoryId
+      const stockMatches = !inStockOnly || product.inStock
+      return categoryMatches && stockMatches
+    })
+
+    return [...filtered].sort((a, b) => {
+      if (sortMode === 'price_asc') {
+        return (a.minPrice ?? Number.MAX_SAFE_INTEGER) - (b.minPrice ?? Number.MAX_SAFE_INTEGER)
+      }
+      if (sortMode === 'price_desc') {
+        return (b.minPrice ?? 0) - (a.minPrice ?? 0)
+      }
+      if (sortMode === 'name') {
+        return a.name.localeCompare(b.name)
+      }
+      return a.sortOrder - b.sortOrder
+    })
+  }, [activeCategoryId, catalog, inStockOnly, sortMode])
 
   if (catalog === undefined) {
     return (
@@ -48,54 +78,83 @@ function ProductsIndex() {
       </header>
 
       {catalog.categories.length ? (
-        <div className="category-row" aria-label="Active categories">
-          {catalog.categories.map((category) => (
-            <span key={category._id}>{category.name}</span>
-          ))}
-        </div>
+        <section className="section-block">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Categories</p>
+              <h2>Shop by use</h2>
+            </div>
+          </div>
+          <div className="category-row" aria-label="Active categories">
+            <button
+              type="button"
+              data-active={activeCategoryId === 'all' ? 'true' : undefined}
+              onClick={() => setActiveCategoryId('all')}
+            >
+              All goods
+            </button>
+            {catalog.categories.map((category) => (
+              <button
+                key={category._id}
+                type="button"
+                data-active={
+                  activeCategoryId === category._id ? 'true' : undefined
+                }
+                onClick={() => setActiveCategoryId(category._id)}
+              >
+                {category.name}
+              </button>
+            ))}
+          </div>
+        </section>
       ) : null}
 
-      {catalog.products.length ? (
-        <div className="product-grid">
-          {catalog.products.map((product) => (
-            <Link
-              key={product._id}
-              to="/products/$slug"
-              params={{ slug: product.slug }}
-              className="product-card"
+      <section className="section-block">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">{products.length} results</p>
+            <h2>All everyday goods</h2>
+          </div>
+          <div className="filter-sort-bar">
+            <button
+              type="button"
+              data-active={inStockOnly ? 'true' : undefined}
+              onClick={() => setInStockOnly((value) => !value)}
             >
-              {product.imageUrl ? (
-                <img src={product.imageUrl} alt="" />
-              ) : (
-                <div className="product-image-placeholder">Muse</div>
-              )}
-              <span>{product.category?.name ?? 'Muse Collection'}</span>
-              <strong>{product.name}</strong>
-              <small>
-                {product.minPrice === null
-                  ? 'Price pending'
-                  : formatMoney(product.minPrice)}
-              </small>
-              <StatusBadge
-                value={product.inStock ? 'in_stock' : 'out_of_stock'}
-              />
-            </Link>
-          ))}
+              In stock
+            </button>
+            <label>
+              Sort
+              <select
+                value={sortMode}
+                onChange={(event) => setSortMode(event.target.value as SortMode)}
+              >
+                <option value="featured">Featured</option>
+                <option value="price_asc">Price low to high</option>
+                <option value="price_desc">Price high to low</option>
+                <option value="name">Name</option>
+              </select>
+            </label>
+          </div>
         </div>
-      ) : (
-        <p className="empty-state">
-          No active products are published yet. Check back after the catalog is
-          stocked.
-        </p>
-      )}
+
+        {products.length ? (
+          <div className="product-grid">
+            {products.map((product, index) => (
+              <StorefrontProductCard
+                key={product._id}
+                product={product}
+                priority={index < 4}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="empty-state">
+            No products match those filters. Clear the category or stock filter
+            to see more goods.
+          </p>
+        )}
+      </section>
     </section>
   )
-}
-
-function formatMoney(value: number) {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    maximumFractionDigits: 0,
-  }).format(value)
 }

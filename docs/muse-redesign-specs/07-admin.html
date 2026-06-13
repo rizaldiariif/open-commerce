@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MUSE Admin Spec</title>
+    <link rel="stylesheet" href="spec.css" />
+  </head>
+  <body>
+    <div class="topbar">Admin target: dense operational MUSE system with the same restrained tokens.</div>
+    <header class="site-header">
+      <div class="shell">
+        <h1 class="brand">Admin Screens</h1>
+        <p class="meta">Applies to <code>src/routes/admin/*</code><br />Operations workspace</p>
+      </div>
+    </header>
+    <nav class="doc-nav" aria-label="Spec pages">
+      <div class="shell">
+        <a href="00-index.html">Index</a>
+        <a href="01-global-shell.html">Global Shell</a>
+        <a href="02-home.html">Home</a>
+        <a href="03-catalog.html">Catalog</a>
+        <a href="04-product-detail.html">Product Detail</a>
+        <a href="05-cart-checkout-payment.html">Cart Checkout</a>
+        <a href="06-account-auth.html">Account Auth</a>
+        <a href="07-admin.html">Admin</a>
+      </div>
+    </nav>
+
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <h1>Admin Requirement</h1>
+          <p>
+            Redesign admin screens into a dense MUSE operations workspace:
+            compact module navigation, KPI strips, table-first data, thin-border
+            panels, calm forms, media pickers, and consistent status badges.
+            Admin should not become a marketing page.
+          </p>
+          <p class="note">
+            The captured current admin screenshot is the protected access state
+            because no admin session was used. The implementation inventory
+            comes from the admin route code and shared admin components.
+          </p>
+        </div>
+        <aside class="summary-card">
+          <dl>
+            <div><dt>Admin scope</dt><dd>All <code>src/routes/admin/*</code></dd></div>
+            <div><dt>Shared owner</dt><dd><code>-admin-page.tsx</code>, <code>-shared.tsx</code></dd></div>
+            <div><dt>Already have</dt><dd>Modules, panels, fields, media</dd></div>
+            <div><dt>Target</dt><dd>Operational system</dd></div>
+          </dl>
+        </aside>
+      </section>
+
+      <section>
+        <h2>Current Admin And Reference Density</h2>
+        <div class="compare-grid">
+          <article class="compare-card">
+            <figure>
+              <div class="screen-frame short">
+                <img src="../muse-current-screenshots/admin-access-desktop-full.png" alt="Current MUSE admin access screenshot" />
+              </div>
+              <figcaption>
+                <strong>Current Admin Access</strong>
+                <span>Captured protected state inside the public shell; authenticated admin has dashboard/modules in route code.</span>
+              </figcaption>
+            </figure>
+          </article>
+          <article class="compare-card">
+            <figure>
+              <div class="screen-frame short">
+                <img src="crops/muji-collection-product-grid.png" alt="MUJI dense grid reference crop" />
+              </div>
+              <figcaption>
+                <strong>Reference Density</strong>
+                <span>Use the same compact scan density, neutral surfaces, small labels, and thin borders for admin data tables.</span>
+              </figcaption>
+            </figure>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Differences To Resolve</h2>
+        <div class="table-scroll">
+          <table class="reference-table">
+            <thead>
+              <tr>
+                <th>Area</th>
+                <th>Current admin</th>
+                <th>Reference behavior</th>
+                <th>Required MUSE change</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Shell</td>
+                <td>Admin routes sit inside the public root shell.</td>
+                <td>Admin needs utility density, not storefront promotion.</td>
+                <td>Build <code>AdminShell</code> variant that shares tokens but avoids public marketing footer dominance.</td>
+              </tr>
+              <tr>
+                <td>Module nav</td>
+                <td><code>admin-tabs</code> generated from <code>adminModules</code>.</td>
+                <td>Compact tabs/sidebar with active state and no visual noise.</td>
+                <td>Restyle and optionally move to sticky side/top module navigation.</td>
+              </tr>
+              <tr>
+                <td>Dashboard</td>
+                <td>Dashboard cards show fulfillment, recovery, low stock, failed emails.</td>
+                <td>Operational overview should be scannable with small KPI numbers.</td>
+                <td>Build <code>AdminKpiBar</code> and compact list cards.</td>
+              </tr>
+              <tr>
+                <td>Tables</td>
+                <td>Some modules are panel/form/list based.</td>
+                <td>Admin should use dense tables for repeated records.</td>
+                <td>Build <code>AdminDataTable</code> for products, inventory, orders, media, coupons, emails.</td>
+              </tr>
+              <tr>
+                <td>Forms</td>
+                <td><code>Panel</code>, <code>TextField</code>, <code>TextArea</code>, media selectors exist.</td>
+                <td>Forms should be compact, grouped, and consistent.</td>
+                <td>Keep helpers but wrap them in <code>AdminFormSection</code> and shared actions row.</td>
+              </tr>
+              <tr>
+                <td>Status</td>
+                <td><code>StatusBadge</code> used across admin/order views.</td>
+                <td>Status should be calm and readable without dominating rows.</td>
+                <td>Restyle badges to small neutral pills with semantic tints.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>Component Requirements With Crops</h2>
+        <div class="component-grid">
+          <article class="component-card">
+            <img class="crop" src="crops/muji-global-header.png" alt="MUJI compact header crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag keep">Reuse</span><span class="tag new">Build</span></div>
+              <h3><code>AdminShell</code></h3>
+              <p>Admin-specific layout with compact top bar, module nav, content width, and no oversized public footer.</p>
+              <dl>
+                <div><dt>Already have</dt><dd><code>AdminModulePage</code>, root shell, <code>adminModules</code>.</dd></div>
+                <div><dt>Get rid</dt><dd>Public storefront footer dominance on admin pages.</dd></div>
+                <div><dt>Need</dt><dd>Admin header, active module nav, workspace account context.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop tall" src="crops/muji-collection-product-grid.png" alt="MUJI dense grid/table crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag new">Build</span></div>
+              <h3><code>AdminDataTable</code></h3>
+              <p>Reusable dense table with columns, actions, empty state, loading state, filters, and row status.</p>
+              <dl>
+                <div><dt>Already have</dt><dd>Admin list data across modules.</dd></div>
+                <div><dt>Get rid</dt><dd>Repeated ad hoc list/table markup per route.</dd></div>
+                <div><dt>Need</dt><dd>Column API, action slots, row links, responsive collapse.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop" src="crops/muji-collection-category-tiles.png" alt="MUJI compact category row crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag keep">Restyle</span><span class="tag new">Extract</span></div>
+              <h3><code>AdminModuleNav</code></h3>
+              <p>Compact tabs or sidebar built from <code>adminModules</code> with active module state.</p>
+              <dl>
+                <div><dt>Already have</dt><dd><code>admin-tabs</code> and <code>adminModules</code>.</dd></div>
+                <div><dt>Get rid</dt><dd>Overly large tab spacing if it competes with content.</dd></div>
+                <div><dt>Need</dt><dd>Mobile overflow, active indicator, optional grouping later.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop" src="crops/muji-pdp-purchase-panel.png" alt="MUJI compact panel crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag keep">Restyle</span><span class="tag new">Build</span></div>
+              <h3><code>AdminFormSection</code></h3>
+              <p>Shared thin-border form section with heading, helper text, compact fields, and action row.</p>
+              <dl>
+                <div><dt>Already have</dt><dd><code>Panel</code>, <code>TextField</code>, <code>TextArea</code>.</dd></div>
+                <div><dt>Get rid</dt><dd>Inconsistent panel spacing across modules.</dd></div>
+                <div><dt>Need</dt><dd>Section description, two-column field grid, save/cancel/action slots.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop" src="crops/muji-home-new-arrivals.png" alt="MUJI small image card crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag keep">Restyle</span></div>
+              <h3><code>AdminMediaPicker</code></h3>
+              <p>Media select and multi-select using compact thumbnails, filenames, selected state, and upload panel.</p>
+              <dl>
+                <div><dt>Already have</dt><dd><code>MediaSelect</code>, <code>MediaMultiSelect</code>, <code>InlineMediaUpload</code>.</dd></div>
+                <div><dt>Get rid</dt><dd>Large media option cards if they reduce admin density.</dd></div>
+                <div><dt>Need</dt><dd>Small thumbnail grid, clear selected state, upload progress style.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop" src="crops/muji-pdp-review-summary.png" alt="MUJI KPI-like review summary crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag new">Build</span></div>
+              <h3><code>AdminKpiBar</code></h3>
+              <p>Small KPI strip for paid orders, payment recovery, low stock, failed emails, and recent activity.</p>
+              <dl>
+                <div><dt>Already have</dt><dd>Dashboard card calculations in <code>AdminDashboard</code>.</dd></div>
+                <div><dt>Get rid</dt><dd>Large dashboard cards as the only overview.</dd></div>
+                <div><dt>Need</dt><dd>Reusable KPI item, severity color, link target, empty state.</dd></div>
+              </dl>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Current Components Inventory</h2>
+        <div class="table-scroll">
+          <table class="reference-table">
+            <thead>
+              <tr>
+                <th>Current piece</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>AdminModulePage</code></td>
+                <td>Keep/extract shell</td>
+                <td>Keep access/workspace loading logic; compose <code>AdminShell</code> and shared messages.</td>
+              </tr>
+              <tr>
+                <td><code>adminModules</code></td>
+                <td>Keep</td>
+                <td>Use as source for <code>AdminModuleNav</code>.</td>
+              </tr>
+              <tr>
+                <td><code>AdminDashboard</code></td>
+                <td>Keep/restyle</td>
+                <td>Move KPI card pattern into <code>AdminKpiBar</code> and compact attention lists.</td>
+              </tr>
+              <tr>
+                <td><code>Panel</code>, <code>TextField</code>, <code>TextArea</code></td>
+                <td>Keep/restyle</td>
+                <td>Wrap in <code>AdminFormSection</code> and standardize field density.</td>
+              </tr>
+              <tr>
+                <td><code>MediaSelect</code>, <code>MediaMultiSelect</code></td>
+                <td>Keep/restyle</td>
+                <td>Make thumbnail/select states compact and consistent.</td>
+              </tr>
+              <tr>
+                <td><code>ConfirmButton</code></td>
+                <td>Keep/restyle</td>
+                <td>Use smaller destructive/action button styles.</td>
+              </tr>
+              <tr>
+                <td>Admin route files</td>
+                <td>Keep focused</td>
+                <td>Each <code>route.tsx</code> should load module data and compose shared admin components only.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>Admin Route Coverage</h2>
+        <div class="table-scroll">
+          <table class="reference-table">
+            <thead>
+              <tr>
+                <th>Route group</th>
+                <th>Target components</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/admin/products</code>, <code>/admin/categories</code></td>
+                <td><code>AdminDataTable</code>, <code>AdminFormSection</code>, <code>AdminMediaPicker</code></td>
+                <td>Catalog operations should match storefront product-card data needs.</td>
+              </tr>
+              <tr>
+                <td><code>/admin/inventory</code></td>
+                <td><code>AdminDataTable</code>, <code>AdminKpiBar</code>, adjustment form</td>
+                <td>Low-stock states should be visible without loud styling.</td>
+              </tr>
+              <tr>
+                <td><code>/admin/orders</code></td>
+                <td><code>AdminDataTable</code>, status badges, order detail panels</td>
+                <td>Order rows should prioritize payment, fulfillment, customer, total, and action.</td>
+              </tr>
+              <tr>
+                <td><code>/admin/media</code></td>
+                <td><code>AdminMediaPicker</code>, upload section, media grid</td>
+                <td>Use compact thumbnails and filename metadata.</td>
+              </tr>
+              <tr>
+                <td><code>/admin/content</code>, <code>/admin/settings</code></td>
+                <td><code>AdminFormSection</code>, content preview blocks</td>
+                <td>These routes should drive home/category/footer modules later.</td>
+              </tr>
+              <tr>
+                <td><code>/admin/coupons</code>, <code>/admin/emails</code>, <code>/admin/activity</code></td>
+                <td><code>AdminDataTable</code>, compact status, filters</td>
+                <td>Keep repeated records in table/list patterns, not bespoke cards.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>Data And Build Notes</h2>
+        <div class="three-col">
+          <article class="task-card">
+            <h3>Data We Have</h3>
+            <p>Admin workspace, modules, products, categories, variants, inventory, coupons, media, content, settings, emails, activity, orders.</p>
+          </article>
+          <article class="task-card">
+            <h3>Data We Need</h3>
+            <p>Only if adding new storefront modules: category imagery/content ordering and richer product metafields.</p>
+          </article>
+          <article class="task-card">
+            <h3>Simple First Pass</h3>
+            <p>Restyle shared admin components first, then touch module routes only where extraction reduces repeated markup.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="shell">Back to <a href="00-index.html">spec index</a></div>
+    </footer>
+  </body>
+</html>

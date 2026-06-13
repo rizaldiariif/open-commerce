@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MUSE Catalog Page Spec</title>
+    <link rel="stylesheet" href="spec.css" />
+  </head>
+  <body>
+    <div class="topbar">Catalog target: dense, calm browsing with useful filters and quiet product cards.</div>
+    <header class="site-header">
+      <div class="shell">
+        <h1 class="brand">Catalog Page</h1>
+        <p class="meta">Applies to <code>src/routes/products/index.tsx</code><br />Route: <code>/products</code></p>
+      </div>
+    </header>
+    <nav class="doc-nav" aria-label="Spec pages">
+      <div class="shell">
+        <a href="00-index.html">Index</a>
+        <a href="01-global-shell.html">Global Shell</a>
+        <a href="02-home.html">Home</a>
+        <a href="03-catalog.html">Catalog</a>
+        <a href="04-product-detail.html">Product Detail</a>
+        <a href="05-cart-checkout-payment.html">Cart Checkout</a>
+        <a href="06-account-auth.html">Account Auth</a>
+        <a href="07-admin.html">Admin</a>
+      </div>
+    </nav>
+
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <h1>Catalog Requirement</h1>
+          <p>
+            Turn <code>/products</code> into a collection browsing page: category
+            tiles at the top, optional promo panels, a filter/sort bar, and a
+            quiet grid of product cards. The page should prioritize scanning,
+            comparison, and quick movement into product detail.
+          </p>
+          <p class="note">
+            Keep the route simple. <code>ProductsIndex</code> should load catalog
+            data and compose <code>CollectionHeader</code>,
+            <code>CategoryTileRail</code>, <code>FilterSortBar</code>, and
+            <code>ProductGrid</code>.
+          </p>
+        </div>
+        <aside class="summary-card">
+          <dl>
+            <div><dt>Current route</dt><dd><code>ProductsIndex</code></dd></div>
+            <div><dt>Current data</dt><dd><code>api.storefront.listProducts</code></dd></div>
+            <div><dt>Already have</dt><dd>Categories, products, status</dd></div>
+            <div><dt>Target</dt><dd>Collection browsing</dd></div>
+          </dl>
+        </aside>
+      </section>
+
+      <section>
+        <h2>Current Page And MUJI Reference</h2>
+        <div class="compare-grid">
+          <article class="compare-card">
+            <figure>
+              <div class="screen-frame">
+                <img src="../muse-current-screenshots/products-desktop-full.png" alt="Current MUSE products screenshot" />
+              </div>
+              <figcaption>
+                <strong>Current MUSE Products</strong>
+                <span>Large page heading, category chips, four-card grid, visible status badges, dark footer.</span>
+              </figcaption>
+            </figure>
+          </article>
+          <article class="compare-card">
+            <figure>
+              <div class="screen-frame">
+                <img src="../muji-reference-screenshots/collection-stationery-desktop-full.png" alt="MUJI collection screenshot" />
+              </div>
+              <figcaption>
+                <strong>MUJI Collection Reference</strong>
+                <span>Category tile rail, promo modules, many quiet product cards, small labels, wishlist icons, service footer.</span>
+              </figcaption>
+            </figure>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Differences To Resolve</h2>
+        <div class="table-scroll">
+          <table class="reference-table">
+            <thead>
+              <tr>
+                <th>Area</th>
+                <th>Current MUSE</th>
+                <th>Reference behavior</th>
+                <th>Required MUSE change</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Collection intro</td>
+                <td>Large "Products" heading and descriptive paragraph.</td>
+                <td>Small collection title, category tiles, then commerce content.</td>
+                <td>Reduce heading scale and move into <code>CollectionHeader</code>.</td>
+              </tr>
+              <tr>
+                <td>Categories</td>
+                <td>Text chips only.</td>
+                <td>Image-backed category tiles near top.</td>
+                <td>Build <code>CategoryTileRail</code>; fall back to text if no image exists.</td>
+              </tr>
+              <tr>
+                <td>Promo blocks</td>
+                <td>No collection-level visual modules.</td>
+                <td>Useful collection promos above product grid.</td>
+                <td>Add optional <code>CollectionPromoGrid</code> from banners/content later.</td>
+              </tr>
+              <tr>
+                <td>Product cards</td>
+                <td>Shared styling with current MUSE visual signature.</td>
+                <td>White/neutral grid, simple product image, price, title, wishlist icon.</td>
+                <td>Use shared <code>StorefrontProductCard</code> with quieter text and square media.</td>
+              </tr>
+              <tr>
+                <td>Filtering</td>
+                <td>No filter/sort UI beyond category chips.</td>
+                <td>Collection browsing expects filtering, sorting, and availability cues.</td>
+                <td>First pass: category filter, availability toggle, sort select, clear action.</td>
+              </tr>
+              <tr>
+                <td>Loading</td>
+                <td>Generic <code>LoadingState</code>.</td>
+                <td>Grid can show skeleton blocks and preserve layout.</td>
+                <td>Add <code>ProductGridSkeleton</code> with fixed card dimensions.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>Component Requirements With Crops</h2>
+        <div class="component-grid">
+          <article class="component-card">
+            <img class="crop" src="crops/muji-collection-category-tiles.png" alt="MUJI category tiles crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag replace">Replace</span><span class="tag new">Build</span></div>
+              <h3><code>CategoryTileRail</code></h3>
+              <p>Horizontal image-backed category links with compact labels.</p>
+              <dl>
+                <div><dt>Already have</dt><dd><code>catalog.categories</code> and current <code>category-row</code>.</dd></div>
+                <div><dt>Get rid</dt><dd>Chip-only category presentation as the main discovery tool.</dd></div>
+                <div><dt>Need</dt><dd>Category image, slug/filter target, active state, mobile horizontal scroll.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop tall" src="crops/muji-collection-promo-layout.png" alt="MUJI collection promo layout crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag new">Build Later</span><span class="tag later">Optional</span></div>
+              <h3><code>CollectionPromoGrid</code></h3>
+              <p>Collection-specific feature images and short CTA blocks above the product grid.</p>
+              <dl>
+                <div><dt>Already have</dt><dd>Homepage banners only.</dd></div>
+                <div><dt>Get rid</dt><dd>None in first pass.</dd></div>
+                <div><dt>Need</dt><dd>Admin-managed collection content or reuse content banners by category.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop tall" src="crops/muji-collection-product-grid.png" alt="MUJI product grid crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag keep">Extract</span><span class="tag replace">Restyle</span></div>
+              <h3><code>ProductGrid</code></h3>
+              <p>Responsive grid that preserves card dimensions and supports empty/loading states.</p>
+              <dl>
+                <div><dt>Already have</dt><dd><code>product-grid</code> CSS and mapped products.</dd></div>
+                <div><dt>Get rid</dt><dd>Route-specific card markup duplicated from home.</dd></div>
+                <div><dt>Need</dt><dd>Shared grid wrapper, skeleton, empty state, product count.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop tall" src="crops/muji-collection-product-grid.png" alt="MUJI product cards crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag keep">Extract</span><span class="tag replace">Restyle</span></div>
+              <h3><code>StorefrontProductCard</code></h3>
+              <p>Quiet product card with square image, price, name, category/status, and optional favorite button.</p>
+              <dl>
+                <div><dt>Already have</dt><dd>Product image, name, min price, stock status, category name.</dd></div>
+                <div><dt>Get rid</dt><dd>Heavy status emphasis and current brand-card treatment.</dd></div>
+                <div><dt>Need</dt><dd>Small status/badge area, wishlist placeholder, consistent image ratio.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop" src="crops/muji-collection-category-tiles.png" alt="MUJI compact collection header crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag replace">Replace</span><span class="tag new">Build</span></div>
+              <h3><code>CollectionHeader</code></h3>
+              <p>Restrained title, count, short description, and optional breadcrumb.</p>
+              <dl>
+                <div><dt>Already have</dt><dd><code>catalog-heading</code>.</dd></div>
+                <div><dt>Get rid</dt><dd>Large display heading and oversized paragraph.</dd></div>
+                <div><dt>Need</dt><dd>Product count and optional category context.</dd></div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="component-card">
+            <img class="crop" src="crops/muji-collection-product-grid.png" alt="MUJI grid loading reference crop" />
+            <div class="body">
+              <div class="tag-list"><span class="tag new">Build</span></div>
+              <h3><code>FilterSortBar</code> + <code>ProductGridSkeleton</code></h3>
+              <p>Compact filter controls and skeletons that do not shift the grid.</p>
+              <dl>
+                <div><dt>Already have</dt><dd><code>LoadingState</code>, category data, status data.</dd></div>
+                <div><dt>Get rid</dt><dd>Full-page loading as the only catalog loading pattern.</dd></div>
+                <div><dt>Need</dt><dd>Filter state, sort state, fixed skeleton card sizes.</dd></div>
+              </dl>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Current Components Inventory</h2>
+        <div class="table-scroll">
+          <table class="reference-table">
+            <thead>
+              <tr>
+                <th>Current piece</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>ProductsIndex</code></td>
+                <td>Keep</td>
+                <td>Keep query and route composition. Extract visual sections.</td>
+              </tr>
+              <tr>
+                <td><code>catalog-heading</code></td>
+                <td>Replace style</td>
+                <td>Use smaller <code>CollectionHeader</code>.</td>
+              </tr>
+              <tr>
+                <td><code>category-row</code></td>
+                <td>Replace</td>
+                <td>Use image-backed <code>CategoryTileRail</code> with text fallback.</td>
+              </tr>
+              <tr>
+                <td><code>product-grid</code></td>
+                <td>Keep/restyle</td>
+                <td>Keep responsive behavior; adjust gaps/card dimensions.</td>
+              </tr>
+              <tr>
+                <td><code>StatusBadge</code></td>
+                <td>Keep/restyle</td>
+                <td>Use compact status text or pill only when operationally useful.</td>
+              </tr>
+              <tr>
+                <td><code>LoadingState</code></td>
+                <td>Supplement</td>
+                <td>Add grid skeleton for catalog loading.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>Data And Build Notes</h2>
+        <div class="three-col">
+          <article class="task-card">
+            <h3>Simple First Pass</h3>
+            <p>Use current categories/products only. Build text fallback category tiles if category images are absent.</p>
+          </article>
+          <article class="task-card">
+            <h3>Missing Data</h3>
+            <p>Search, sort by price/newest, wishlist, quick shop, category image quality, and collection promo content.</p>
+          </article>
+          <article class="task-card">
+            <h3>Admin Dependency</h3>
+            <p>Later, admin content/categories should manage category images and collection promo modules.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="shell">Next: <a href="04-product-detail.html">Product detail spec</a></div>
+    </footer>
+  </body>
+</html>

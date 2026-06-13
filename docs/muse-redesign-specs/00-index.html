@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MUSE Redesign Page Specs</title>
+    <link rel="stylesheet" href="spec.css" />
+  </head>
+  <body>
+    <div class="topbar">MUSE redesign specs: MUJI-inspired references, original MUSE execution.</div>
+    <header class="site-header">
+      <div class="shell">
+        <h1 class="brand">MUSE Page Specs</h1>
+        <p class="meta">Open Commerce redesign planning<br />Updated 2026-06-13</p>
+      </div>
+    </header>
+    <nav class="doc-nav" aria-label="Spec pages">
+      <div class="shell">
+        <a href="00-index.html">Index</a>
+        <a href="01-global-shell.html">Global Shell</a>
+        <a href="02-home.html">Home</a>
+        <a href="03-catalog.html">Catalog</a>
+        <a href="04-product-detail.html">Product Detail</a>
+        <a href="05-cart-checkout-payment.html">Cart Checkout</a>
+        <a href="06-account-auth.html">Account Auth</a>
+        <a href="07-admin.html">Admin</a>
+      </div>
+    </nav>
+
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <h1>Detailed Per-Page Redesign Requirements</h1>
+          <p>
+            This folder turns the MUJI reference screenshots and current MUSE
+            screenshots into page-by-page implementation notes. The redesign
+            includes the customer storefront and admin screens, keeps the name
+            MUSE, and uses adjacent cedar accent color instead of copying MUJI
+            red directly.
+          </p>
+          <p class="note">
+            Boundary: use observable retail patterns such as compact typography,
+            thin borders, product-first imagery, category navigation, and quiet
+            utility. Do not copy MUJI logos, exact imagery, exact copy, or
+            proprietary trade dress.
+          </p>
+        </div>
+        <aside class="summary-card">
+          <dl>
+            <div>
+              <dt>Brand name</dt>
+              <dd>MUSE</dd>
+            </div>
+            <div>
+              <dt>Accent</dt>
+              <dd>#8a3a2d</dd>
+            </div>
+            <div>
+              <dt>Scope</dt>
+              <dd>Storefront + admin</dd>
+            </div>
+            <div>
+              <dt>Source mode</dt>
+              <dd>Reference, not clone</dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section>
+        <h2>Implementation Status</h2>
+        <div class="three-col">
+          <article class="task-card">
+            <h3>Implemented</h3>
+            <p>
+              Global MUSE shell, design tokens, storefront product card,
+              quantity stepper, home modules, catalog filters/sort, product
+              detail purchase panel, cart line item, account dashboard, and
+              admin shell treatment.
+            </p>
+          </article>
+          <article class="task-card">
+            <h3>Verified</h3>
+            <p>
+              <code>npm run typecheck</code> and <code>npm run build</code>
+              passed. Playwright screenshots were checked for home desktop,
+              home mobile, catalog, PDP, and admin access.
+            </p>
+          </article>
+          <article class="task-card">
+            <h3>Deferred</h3>
+            <p>
+              Real search behavior, wishlist, review data, dedicated address
+              book, and richer admin-managed collection modules remain future
+              product work.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Spec Pages</h2>
+        <div class="route-grid">
+          <article class="route-card">
+            <h3><a href="01-global-shell.html">Global Shell</a></h3>
+            <p>
+              Header, promo bar, category navigation, search, account actions,
+              footer, practical link columns, and admin shell relationship.
+            </p>
+          </article>
+          <article class="route-card">
+            <h3><a href="02-home.html">Home</a></h3>
+            <p>
+              Converts the current editorial landing page into commerce modules:
+              hero promo, category rail, seasonal rows, story cards, and product
+              cards.
+            </p>
+          </article>
+          <article class="route-card">
+            <h3><a href="03-catalog.html">Catalog</a></h3>
+            <p>
+              Maps <code>/products</code> to collection category tiles,
+              product-grid behavior, compact cards, filters, sort, and loading
+              states.
+            </p>
+          </article>
+          <article class="route-card">
+            <h3><a href="04-product-detail.html">Product Detail</a></h3>
+            <p>
+              Maps <code>/products/$slug</code> to gallery, purchase panel,
+              variant buttons, quantity stepper, accordions, reviews, and
+              product information sections.
+            </p>
+          </article>
+          <article class="route-card">
+            <h3><a href="05-cart-checkout-payment.html">Cart Checkout</a></h3>
+            <p>
+              Maps <code>/cart</code>, <code>/checkout</code>, and
+              <code>/payment/$orderNumber</code> to compact order rows, forms,
+              order summary, coupon, and payment states.
+            </p>
+          </article>
+          <article class="route-card">
+            <h3><a href="06-account-auth.html">Account Auth</a></h3>
+            <p>
+              Maps login, register, account, order list, and order detail to a
+              quieter retail account workspace with consistent forms and access
+              states.
+            </p>
+          </article>
+          <article class="route-card">
+            <h3><a href="07-admin.html">Admin</a></h3>
+            <p>
+              Maps the admin route family to a dense operational MUSE system:
+              module nav, KPI bar, tables, forms, media picker, and access
+              states.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Route Map</h2>
+        <div class="table-scroll">
+          <table class="reference-table">
+            <thead>
+              <tr>
+                <th>App route</th>
+                <th>Current screenshot</th>
+                <th>MUJI reference</th>
+                <th>Primary spec</th>
+                <th>Main work</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>src/routes/__root.tsx</code></td>
+                <td><code>home-desktop-full.png</code></td>
+                <td><code>muji-global-header.png</code>, <code>muji-global-footer.png</code></td>
+                <td><a href="01-global-shell.html">Global Shell</a></td>
+                <td>Replace brand-heavy shell with compact retail utility.</td>
+              </tr>
+              <tr>
+                <td><code>src/routes/index.tsx</code></td>
+                <td><code>home-desktop-full.png</code></td>
+                <td><code>home-desktop-full.png</code></td>
+                <td><a href="02-home.html">Home</a></td>
+                <td>Shift from manifesto layout to product/category modules.</td>
+              </tr>
+              <tr>
+                <td><code>src/routes/products/index.tsx</code></td>
+                <td><code>products-desktop-full.png</code></td>
+                <td><code>collection-stationery-desktop-full.png</code></td>
+                <td><a href="03-catalog.html">Catalog</a></td>
+                <td>Build collection header, category tiles, filters, and quiet cards.</td>
+              </tr>
+              <tr>
+                <td><code>src/routes/products/$slug.tsx</code></td>
+                <td><code>product-canvas-market-tote-desktop-full.png</code></td>
+                <td><code>product-notebook-desktop-full.png</code></td>
+                <td><a href="04-product-detail.html">Product Detail</a></td>
+                <td>Extract gallery, purchase panel, variant buttons, accordions.</td>
+              </tr>
+              <tr>
+                <td><code>src/routes/cart/route.tsx</code></td>
+                <td><code>cart-desktop-full.png</code></td>
+                <td><code>muji-pdp-purchase-panel.png</code></td>
+                <td><a href="05-cart-checkout-payment.html">Cart Checkout</a></td>
+                <td>Use compact table-like rows and order summary.</td>
+              </tr>
+              <tr>
+                <td><code>src/routes/checkout/route.tsx</code>, <code>src/routes/payment/$orderNumber.tsx</code></td>
+                <td><code>checkout-desktop-full.png</code></td>
+                <td><code>muji-pdp-purchase-panel.png</code>, <code>muji-global-footer.png</code></td>
+                <td><a href="05-cart-checkout-payment.html">Cart Checkout</a></td>
+                <td>Restyle form sections, coupon, payment CTA, and status panels.</td>
+              </tr>
+              <tr>
+                <td><code>src/routes/login/route.tsx</code>, <code>src/routes/register/route.tsx</code>, <code>src/routes/account/*</code></td>
+                <td><code>login-desktop-full.png</code>, <code>account-desktop-full.png</code></td>
+                <td><code>muji-global-header.png</code>, <code>muji-mobile-footer-accordions.png</code></td>
+                <td><a href="06-account-auth.html">Account Auth</a></td>
+                <td>Create consistent form, account, and order workspace components.</td>
+              </tr>
+              <tr>
+                <td><code>src/routes/admin/*</code></td>
+                <td><code>admin-access-desktop-full.png</code></td>
+                <td><code>muji-collection-product-grid.png</code>, <code>muji-global-header.png</code></td>
+                <td><a href="07-admin.html">Admin</a></td>
+                <td>Apply dense MUSE operational UI with shared admin components.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>Crop Asset Library</h2>
+        <p>
+          These crops come from public MUJI screenshots captured for reference.
+          Each per-page spec points React components at these crops for visual
+          density, spacing, and behavior guidance.
+        </p>
+        <div class="asset-grid">
+          <article class="asset-card">
+            <h3>Global</h3>
+            <p><code>muji-global-header.png</code>, <code>muji-global-footer.png</code></p>
+          </article>
+          <article class="asset-card">
+            <h3>Home</h3>
+            <p><code>muji-home-hero.png</code>, <code>muji-home-new-arrivals.png</code>, <code>muji-home-editorial-grid.png</code>, <code>muji-home-story-cards.png</code></p>
+          </article>
+          <article class="asset-card">
+            <h3>Collection</h3>
+            <p><code>muji-collection-category-tiles.png</code>, <code>muji-collection-promo-layout.png</code>, <code>muji-collection-product-grid.png</code>, <code>muji-collection-editorial-tiles.png</code></p>
+          </article>
+          <article class="asset-card">
+            <h3>Product Detail</h3>
+            <p><code>muji-pdp-gallery.png</code>, <code>muji-pdp-purchase-panel.png</code>, <code>muji-pdp-size-guide.png</code>, <code>muji-pdp-review-summary.png</code>, <code>muji-pdp-review-list.png</code></p>
+          </article>
+          <article class="asset-card">
+            <h3>Mobile Product</h3>
+            <p><code>muji-mobile-pdp-header.png</code>, <code>muji-mobile-pdp-action-stack.png</code>, <code>muji-mobile-pdp-reviews.png</code>, <code>muji-mobile-footer-accordions.png</code></p>
+          </article>
+          <article class="asset-card">
+            <h3>Helper</h3>
+            <p><code>cropper.html</code> is the local viewport crop helper used to create these assets.</p>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Implementation Rules</h2>
+        <div class="three-col">
+          <article class="task-card">
+            <h3>Keep Routes Focused</h3>
+            <p>
+              Route files should load data, handle mutations, and compose small
+              components. Move repeated view pieces into components before a
+              route grows too much.
+            </p>
+          </article>
+          <article class="task-card">
+            <h3>Start With Tokens</h3>
+            <p>
+              Update typography, color, borders, spacing, button, input, and
+              card defaults before page-specific redesign work.
+            </p>
+          </article>
+          <article class="task-card">
+            <h3>Do Storefront First</h3>
+            <p>
+              Build global shell, home, catalog, and PDP foundations, then bring
+              cart, account, payment, and admin into the same system.
+            </p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="shell">Reference docs only. No production code changed by these specs.</div>
+    </footer>
+  </body>
+</html>
