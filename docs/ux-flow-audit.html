@@ -1,0 +1,1671 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Muse Commerce UX and Flow Audit</title>
+    <style>
+      :root {
+        color: #1f2328;
+        background: #f7f8fa;
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          sans-serif;
+        line-height: 1.55;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      main {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 40px 0 72px;
+      }
+
+      header {
+        margin-bottom: 28px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        line-height: 1.15;
+      }
+
+      h1 {
+        max-width: 920px;
+        font-size: clamp(2.2rem, 6vw, 4.4rem);
+      }
+
+      h2 {
+        margin-top: 38px;
+        padding-top: 28px;
+        border-top: 1px solid #d8dee4;
+        font-size: 1.6rem;
+      }
+
+      h3 {
+        margin-top: 26px;
+        font-size: 1.12rem;
+      }
+
+      p {
+        max-width: 900px;
+      }
+
+      a {
+        color: #0969da;
+      }
+
+      code {
+        border: 1px solid #d8dee4;
+        border-radius: 5px;
+        padding: 1px 5px;
+        background: #ffffff;
+        color: #24292f;
+        font-size: 0.92em;
+      }
+
+      .eyebrow {
+        margin: 0 0 10px;
+        color: #57606a;
+        font-size: 0.82rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 12px;
+        margin: 26px 0 34px;
+      }
+
+      .metric,
+      section.card {
+        border: 1px solid #d8dee4;
+        border-radius: 8px;
+        background: #ffffff;
+      }
+
+      .metric {
+        padding: 16px;
+      }
+
+      .metric strong {
+        display: block;
+        color: #0969da;
+        font-size: 1.8rem;
+        line-height: 1;
+      }
+
+      .metric span {
+        color: #57606a;
+        font-size: 0.92rem;
+      }
+
+      section.card {
+        margin-top: 16px;
+        padding: 18px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 14px;
+      }
+
+      .flow {
+        border: 1px solid #d8dee4;
+        border-radius: 8px;
+        padding: 16px;
+        background: #ffffff;
+      }
+
+      .flow h3 {
+        margin-top: 0;
+      }
+
+      .flow ul,
+      .flow ol {
+        margin-bottom: 0;
+        padding-left: 22px;
+      }
+
+      .flow li + li {
+        margin-top: 6px;
+      }
+
+      .tag-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin: 12px 0 0;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        border-radius: 999px;
+        padding: 2px 9px;
+        background: #eef4ff;
+        color: #0969da;
+        font-size: 0.78rem;
+        font-weight: 800;
+      }
+
+      .tag.defect {
+        background: #fff1f1;
+        color: #cf222e;
+      }
+
+      .tag.ux {
+        background: #fff8c5;
+        color: #7d4e00;
+      }
+
+      .tag.gap {
+        background: #f6f8fa;
+        color: #57606a;
+      }
+
+      .tag.done {
+        background: #dafbe1;
+        color: #1a7f37;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 14px;
+        border-collapse: collapse;
+        background: #ffffff;
+      }
+
+      th,
+      td {
+        padding: 11px;
+        border: 1px solid #d8dee4;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #f6f8fa;
+        color: #57606a;
+        font-size: 0.82rem;
+        text-transform: uppercase;
+      }
+
+      td ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      .severity {
+        white-space: nowrap;
+        font-weight: 800;
+      }
+
+      .critical {
+        color: #cf222e;
+      }
+
+      .high {
+        color: #bc4c00;
+      }
+
+      .medium {
+        color: #8250df;
+      }
+
+      .low {
+        color: #57606a;
+      }
+
+      .note {
+        border-left: 4px solid #0969da;
+        padding: 12px 14px;
+        background: #ddf4ff;
+      }
+
+      .warning {
+        border-left: 4px solid #bc4c00;
+        padding: 12px 14px;
+        background: #fff8c5;
+      }
+
+      .toc {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 22px;
+      }
+
+      .toc a {
+        border: 1px solid #d8dee4;
+        border-radius: 6px;
+        padding: 7px 10px;
+        background: #ffffff;
+        color: #24292f;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      @media (max-width: 760px) {
+        main {
+          width: min(100% - 24px, 1180px);
+          padding-top: 24px;
+        }
+
+        table {
+          display: block;
+          overflow-x: auto;
+          white-space: normal;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">UX audit and implementation status, 2026-06-13</p>
+        <h1>Muse Commerce UX, Flow, Edge Case, and Defect Audit</h1>
+        <p>
+          This report inventories the current app behavior, traces each major
+          user and admin flow, lists edge cases, calls out likely defects, and
+          proposes simple quality-of-life fixes. It is based on the current
+          React routes, Convex functions, schema, styles, README, and launch
+          docs.
+        </p>
+        <nav class="toc" aria-label="Report sections">
+          <a href="#summary">Summary</a>
+          <a href="#implemented">Implemented</a>
+          <a href="#features">Feature Flows</a>
+          <a href="#defects">Defects</a>
+          <a href="#ux">UX Issues</a>
+          <a href="#solutions">Solutions</a>
+          <a href="#implementation">Implementation Plan</a>
+        </nav>
+      </header>
+
+      <section id="summary">
+        <h2>Executive Summary</h2>
+        <div class="summary">
+          <div class="metric">
+            <strong>22</strong>
+            <span>feature areas reviewed</span>
+          </div>
+          <div class="metric">
+            <strong>18</strong>
+            <span>likely defects or behavior gaps</span>
+          </div>
+          <div class="metric">
+            <strong>28</strong>
+            <span>quality-of-life issues</span>
+          </div>
+          <div class="metric">
+            <strong>5</strong>
+            <span>highest priority fixes</span>
+          </div>
+        </div>
+
+        <section class="card">
+          <h3>Highest Priority Findings</h3>
+          <ol>
+            <li>
+              Payment and protected routes render tiny loading placeholders
+              first. This causes the blank/flicker feeling, especially after
+              checkout redirects to <code>/payment/$orderNumber</code>.
+            </li>
+            <li>
+              Several protected routes call Convex queries that throw on
+              unauthenticated users. Without route-level error UI, this can
+              produce blank or harsh error states instead of clear login
+              prompts.
+            </li>
+            <li>
+              Checkout has a backend coupon preview query, but the UI does not
+              use it. Coupon errors arrive too late, after the user submits the
+              whole checkout form.
+            </li>
+            <li>
+              Admin product creation is split across Products, Media, Variants,
+              and Inventory. The app works, but the workflow is hard to discover
+              and easy to abandon.
+            </li>
+            <li>
+              Some admin content/settings fields are editable but are not fully
+              reflected in the storefront or admin UI, including homepage
+              featured category slugs, homepage banner images, footer text, and
+              settings such as checkout enabled.
+            </li>
+          </ol>
+        </section>
+
+        <p class="note">
+          Payment retry behavior exists: a customer can create a new invoice
+          after a failed or expired payment if the order still belongs to them,
+          the order is retryable, and stock can be reserved again. The UX does
+          not explain those conditions.
+        </p>
+      </section>
+
+      <section id="implemented">
+        <h2>Implementation Status After UX Pass</h2>
+        <p class="note">
+          Status updated on 2026-06-13 after the UX implementation pass. Items
+          marked implemented are now represented in code, not only proposed in
+          this audit.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Finding / Proposal</th>
+              <th>Status</th>
+              <th>What changed</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                Blank/flickering loading states on payment and protected routes.
+              </td>
+              <td><span class="tag done">Implemented</span></td>
+              <td>
+                Added shared loading, access, and route error UI. Payment,
+                checkout, cart, products, account orders, admin orders, and
+                admin modules now show intentional loading/access states.
+              </td>
+            </tr>
+            <tr>
+              <td>No immediate action feedback.</td>
+              <td><span class="tag done">Implemented</span></td>
+              <td>
+                Added a shared toast provider and wired success/error feedback
+                through product add-to-cart, cart updates, checkout, payment,
+                admin module actions, shipment, refund, and media workflows.
+              </td>
+            </tr>
+            <tr>
+              <td>Raw statuses are hard to scan.</td>
+              <td><span class="tag done">Implemented</span></td>
+              <td>
+                Added shared status labels and badges for order, payment,
+                fulfillment, product, coupon, email, stock, and refund states.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                Customers cannot tell whether expired or failed payments are
+                retryable.
+              </td>
+              <td><span class="tag done">Implemented</span></td>
+              <td>
+                Payment and account order pages now show retry copy, invoice
+                expiry, active Xendit invoice links, and "create new invoice"
+                actions for failed or expired payment states.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                Manual refunds can over-refund and always mark payment refunded.
+              </td>
+              <td><span class="tag done">Implemented</span></td>
+              <td>
+                Manual refunds now validate remaining refundable amount, support
+                <code>partially_refunded</code>, disable exhausted refunds, and
+                ask for confirmation before saving.
+              </td>
+            </tr>
+            <tr>
+              <td>Checkout coupon validation happens too late.</td>
+              <td><span class="tag done">Implemented</span></td>
+              <td>
+                Checkout now calls coupon preview while the user types and shows
+                valid, invalid, not-found, discount, and total states before
+                order submission.
+              </td>
+            </tr>
+            <tr>
+              <td>Cart can route to checkout when checkout is disabled.</td>
+              <td><span class="tag done">Implemented</span></td>
+              <td>
+                Cart query now includes checkout availability and replaces the
+                checkout CTA with a clear disabled message when checkout is off.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                Product image workflow requires a separate media upload step.
+              </td>
+              <td><span class="tag done">Implemented</span></td>
+              <td>
+                Media fields now support inline image upload and immediate
+                selection in products, product galleries, categories, homepage
+                content, logo, and favicon fields.
+              </td>
+            </tr>
+            <tr>
+              <td>Media dropdowns are hard to use.</td>
+              <td><span class="tag done">Implemented</span></td>
+              <td>
+                Added media previews for selected assets and thumbnail selection
+                for product galleries.
+              </td>
+            </tr>
+            <tr>
+              <td>Homepage banners use hidden pipe-delimited syntax.</td>
+              <td><span class="tag done">Implemented</span></td>
+              <td>
+                Homepage banners are now structured rows with title, body, link,
+                image picker, inline upload, add, and remove controls.
+              </td>
+            </tr>
+            <tr>
+              <td>Settings fields exist in schema but are missing from UI.</td>
+              <td><span class="tag done">Implemented</span></td>
+              <td>
+                Settings UI now exposes currency, locale, checkout enabled, and
+                maintenance mode, alongside logo/favicon inline upload.
+              </td>
+            </tr>
+            <tr>
+              <td>Admin default route has no operational overview.</td>
+              <td><span class="tag done">Implemented</span></td>
+              <td>
+                Replaced the admin redirect with a dashboard for paid orders to
+                fulfill, payment recovery, low stock, and failed email events.
+              </td>
+            </tr>
+            <tr>
+              <td>Dangerous admin actions have no confirmation.</td>
+              <td><span class="tag done">Implemented</span></td>
+              <td>
+                Added confirmation prompts for product archive, category delete,
+                media soft delete, coupon enable/disable, variant deactivate,
+                and manual refund.
+              </td>
+            </tr>
+            <tr>
+              <td>Follow-up polish not completed in this pass.</td>
+              <td><span class="tag gap">Follow-up</span></td>
+              <td>
+                Still recommended: rendered email variable helper/test send,
+                structured variant option rows, live payment countdown,
+                paginated order search, and keeping previous data visible during
+                Convex refreshes.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="features">
+        <h2>Detailed Feature Flow Audit</h2>
+
+        <div class="grid">
+          <article class="flow">
+            <h3>1. Register, Login, Profile Sync, Sign Out</h3>
+            <p>
+              Routes: <code>/register</code>, <code>/login</code>, global
+              <code>AuthStatus</code>. Registration and login use Convex Auth,
+              then <code>ensureCurrentUserProfile</code> creates or updates a
+              customer profile.
+            </p>
+            <ul>
+              <li>
+                Successful login redirects to the requested path or account.
+              </li>
+              <li>
+                Successful register redirects to account after profile sync.
+              </li>
+              <li>Sign out redirects home.</li>
+              <li>Wrong credentials display inline error text.</li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag ux">UX</span>
+              <span class="tag gap">Auth loading</span>
+            </div>
+          </article>
+
+          <article class="flow">
+            <h3>2. First Superadmin Setup</h3>
+            <p>
+              Route: <code>/setup</code>. Signed-in first user submits
+              <code>SETUP_TOKEN</code>. Backend disables bootstrap once any
+              superadmin exists.
+            </p>
+            <ul>
+              <li>Invalid token returns an inline error.</li>
+              <li>Missing token configuration returns a backend error.</li>
+              <li>Already bootstrapped state links to admin.</li>
+              <li>Setup remains in global nav even when disabled.</li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag ux">UX</span>
+              <span class="tag gap">Wayfinding</span>
+            </div>
+          </article>
+
+          <article class="flow">
+            <h3>3. Storefront Homepage</h3>
+            <p>
+              Route: <code>/</code>. Loads site settings, published homepage
+              content, banners, and featured products. If no content is
+              published, defaults are used.
+            </p>
+            <ul>
+              <li>Missing media is hidden gracefully.</li>
+              <li>No active products shows an empty state.</li>
+              <li>Footer text is editable in admin but not rendered here.</li>
+              <li>
+                Featured category slugs are stored but not used for products.
+              </li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag defect">Defect</span>
+              <span class="tag ux">UX</span>
+            </div>
+          </article>
+
+          <article class="flow">
+            <h3>4. Product Listing</h3>
+            <p>
+              Route: <code>/products</code>. Lists active products and active
+              categories with current price, image, and stock availability.
+            </p>
+            <ul>
+              <li>Archived and draft products are not shown.</li>
+              <li>Categories are displayed but are not clickable filters.</li>
+              <li>No search, sort, category filter, or stock filter exists.</li>
+              <li>
+                Loading state is a small text page, causing visual flicker.
+              </li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag ux">UX</span>
+              <span class="tag gap">Catalog discovery</span>
+            </div>
+          </article>
+
+          <article class="flow">
+            <h3>5. Product Detail and Add to Cart</h3>
+            <p>
+              Route: <code>/products/$slug</code>. Shows product media,
+              variants, price, stock, quantity, and add-to-cart.
+            </p>
+            <ul>
+              <li>
+                Archived or unavailable products return "Product not found."
+              </li>
+              <li>Out-of-stock variants disable add-to-cart.</li>
+              <li>
+                Signed-out users should see login, but auth loading can show
+                add-to-cart first because only <code>current === null</code> is
+                checked.
+              </li>
+              <li>
+                No pending state on add-to-cart, so repeated clicks are
+                possible.
+              </li>
+              <li>Success message does not offer "View cart" or "Checkout".</li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag defect">Defect</span>
+              <span class="tag ux">UX</span>
+            </div>
+          </article>
+
+          <article class="flow">
+            <h3>6. Cart Review</h3>
+            <p>
+              Route: <code>/cart</code>. Signed-in customers can review cart
+              items, update quantities, remove items, and continue to checkout.
+            </p>
+            <ul>
+              <li>Signed-out users get a login prompt.</li>
+              <li>Invalid products or insufficient stock block checkout.</li>
+              <li>
+                Quantity input uses <code>defaultValue</code>, so it can feel
+                stale after reactive updates.
+              </li>
+              <li>
+                Cart does not consider <code>checkoutEnabled</code>, so it can
+                link to checkout even when checkout is disabled in settings.
+              </li>
+              <li>
+                No per-item pending state, optimistic update, or undo after
+                remove.
+              </li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag defect">Defect</span>
+              <span class="tag ux">UX</span>
+            </div>
+          </article>
+
+          <article class="flow">
+            <h3>7. Checkout</h3>
+            <p>
+              Route: <code>/checkout</code>. Loads contact, saved addresses,
+              cart details, and settings. Submitting creates an order, reserves
+              stock, reserves coupon usage, creates a Xendit invoice, then
+              navigates to payment.
+            </p>
+            <ul>
+              <li>Stock changes are revalidated on order creation.</li>
+              <li>Invalid coupons fail at submit time.</li>
+              <li>Backend supports coupon preview, but UI does not use it.</li>
+              <li>
+                If invoice creation fails, the order may exist and the cart is
+                already converted. Retry is possible from payment/order, but the
+                user is not guided clearly.
+              </li>
+              <li>Checkout page after redirect starts from a loading shell.</li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag ux">UX</span>
+              <span class="tag gap">Late validation</span>
+            </div>
+          </article>
+
+          <article class="flow">
+            <h3>8. Payment Handoff and Retry</h3>
+            <p>
+              Route: <code>/payment/$orderNumber</code>. Shows order items,
+              totals, payment status, and the Xendit invoice link.
+            </p>
+            <ul>
+              <li>
+                Pending payment with an active checkout URL shows "Pay with
+                Xendit."
+              </li>
+              <li>
+                Pending payment with expired local URL can create a new invoice.
+              </li>
+              <li>
+                Failed or expired payment can retry if stock can be reserved
+                again.
+              </li>
+              <li>
+                Paid, refunded, and cancelled orders cannot be paid again.
+              </li>
+              <li>
+                No countdown, payment timeline, webhook status, or clear retry
+                explanation.
+              </li>
+              <li>
+                Initial SSR response is only "Loading order", so the redirect
+                feels blank before hydration/data arrives.
+              </li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag ux">UX</span>
+              <span class="tag gap">Retry explanation</span>
+            </div>
+          </article>
+
+          <article class="flow">
+            <h3>9. Customer Account and Orders</h3>
+            <p>
+              Routes: <code>/account</code>, <code>/account/orders</code>,
+              <code>/account/orders/$orderNumber</code>. Customers can view
+              their account, order list, order items, payment state, and
+              shipment state.
+            </p>
+            <ul>
+              <li>
+                <code>/account</code> has a friendly login-required state.
+              </li>
+              <li>
+                Nested order routes use queries that throw when not signed in.
+              </li>
+              <li>Order statuses are raw text, not readable status badges.</li>
+              <li>No tracking link button even when tracking URL exists.</li>
+              <li>
+                No reorder, contact support, invoice copy, or cancellation
+                guidance.
+              </li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag defect">Defect</span>
+              <span class="tag ux">UX</span>
+            </div>
+          </article>
+
+          <article class="flow">
+            <h3>10. Admin Shell and Navigation</h3>
+            <p>
+              Routes under <code>/admin</code>. Admin module pages call
+              <code>requireAdmin</code> and <code>getWorkspace</code>.
+            </p>
+            <ul>
+              <li>Authorized admins see KPI counts and module tabs.</li>
+              <li>
+                Unauthorized users should see a friendly admin access screen.
+              </li>
+              <li>
+                <code>getWorkspace</code> can throw while
+                <code>requireAdmin</code> is still resolving, creating possible
+                error/blank states.
+              </li>
+              <li>
+                Every admin tab loads one large workspace payload, which can
+                contribute to flicker and slow refreshes.
+              </li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag defect">Defect</span>
+              <span class="tag ux">UX</span>
+            </div>
+          </article>
+
+          <article class="flow">
+            <h3>11. Admin Products and Variants</h3>
+            <p>
+              Route: <code>/admin/products</code>. Admins can list products,
+              edit products, archive products, list variants, create/edit
+              variants, and deactivate variants.
+            </p>
+            <ul>
+              <li>
+                Backend validates slugs, duplicate slugs, SKU uniqueness, money,
+                and stock.
+              </li>
+              <li>
+                Admins can activate products without image, active variant, or
+                stock.
+              </li>
+              <li>
+                Product images are selected by filename from existing media
+                only.
+              </li>
+              <li>
+                Variant options use comma text syntax like
+                <code>Size:M, Color:Black</code>.
+              </li>
+              <li>Archive/deactivate have no confirmation or undo.</li>
+              <li>
+                The route file combines product list, product form, variant
+                list, and variant form, making future UX work harder.
+              </li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag ux">UX</span>
+              <span class="tag gap">Admin workflow</span>
+            </div>
+          </article>
+
+          <article class="flow">
+            <h3>12. Admin Categories</h3>
+            <p>
+              Route: <code>/admin/categories</code>. Admins can create, edit,
+              delete, or deactivate categories.
+            </p>
+            <ul>
+              <li>
+                Deleting a category used by a product deactivates it instead.
+              </li>
+              <li>Self-parenting is rejected.</li>
+              <li>
+                No confirmation explains delete versus deactivate behavior.
+              </li>
+              <li>Parent hierarchy is not visualized.</li>
+              <li>
+                Category image uses the same media dropdown issue as products.
+              </li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag ux">UX</span>
+            </div>
+          </article>
+
+          <article class="flow">
+            <h3>13. Admin Inventory</h3>
+            <p>
+              Route: <code>/admin/inventory</code>. Admins view variant stock
+              and record append-only inventory adjustments.
+            </p>
+            <ul>
+              <li>Negative stock after adjustment is rejected.</li>
+              <li>Adjustment must be a non-zero integer.</li>
+              <li>
+                Reserved stock is shown, but available stock is not emphasized.
+              </li>
+              <li>No search/filter for variant selection.</li>
+              <li>Recent movements omit dates and actor context in the UI.</li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag ux">UX</span>
+            </div>
+          </article>
+
+          <article class="flow">
+            <h3>14. Admin Media Library</h3>
+            <p>
+              Route: <code>/admin/media</code>. Admins can upload images to
+              Convex File Storage, save media records, preview media, and soft
+              delete media from pickers.
+            </p>
+            <ul>
+              <li>Upload failure shows an inline error.</li>
+              <li>
+                Soft-deleted media disappears from pickers and public media
+                URLs.
+              </li>
+              <li>No inline upload from product/content forms.</li>
+              <li>
+                No file preview before upload, dimensions, size warning, usage
+                count, restore, or confirmation.
+              </li>
+              <li>
+                Server accepts content type sent by the client and does not
+                validate image type beyond the browser accept attribute.
+              </li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag ux">UX</span>
+              <span class="tag gap">Validation</span>
+            </div>
+          </article>
+
+          <article class="flow">
+            <h3>15. Admin Homepage Content</h3>
+            <p>
+              Route: <code>/admin/content</code>. Admins edit hero text, hero
+              image, CTA, featured category slugs, banners, announcement, about
+              text, footer text, and status.
+            </p>
+            <ul>
+              <li>Hero title is required.</li>
+              <li>Featured category slug format is validated.</li>
+              <li>Banner entry uses pipe-delimited text.</li>
+              <li>
+                Banner image IDs exist in schema but are not editable in UI.
+              </li>
+              <li>
+                Featured category slugs are stored but not used by storefront
+                query.
+              </li>
+              <li>
+                Footer text is stored but not rendered by the storefront shell.
+              </li>
+              <li>No live preview or draft/published comparison.</li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag defect">Defect</span>
+              <span class="tag ux">UX</span>
+            </div>
+          </article>
+
+          <article class="flow">
+            <h3>16. Admin Coupons and Customer Coupon Use</h3>
+            <p>
+              Route: <code>/admin/coupons</code>. Backend supports percentage
+              and fixed coupons with minimum subtotal, cap, usage limits,
+              per-customer limits, active windows, and enable/disable.
+            </p>
+            <ul>
+              <li>Coupon code is normalized uppercase.</li>
+              <li>Checkout reserves coupon usage and expiry releases it.</li>
+              <li>
+                Admin can create very large percentage values; discount is
+                capped by subtotal, but the admin UI can still be misleading.
+              </li>
+              <li>No admin "test coupon" preview.</li>
+              <li>No redemption detail list.</li>
+              <li>
+                Customer checkout does not preview coupon validity or discount.
+              </li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag ux">UX</span>
+              <span class="tag gap">Validation clarity</span>
+            </div>
+          </article>
+
+          <article class="flow">
+            <h3>17. Admin Email Templates and Email Events</h3>
+            <p>
+              Route: <code>/admin/emails</code>. Superadmins can edit templates.
+              Email events are logged as queued, sent, or failed.
+            </p>
+            <ul>
+              <li>Missing Resend API key logs failed email events.</li>
+              <li>Inactive templates skip sending silently.</li>
+              <li>Unknown template variables render as blank strings.</li>
+              <li>
+                No variable reference, rendered preview, test send, retry, or
+                diff before saving.
+              </li>
+              <li>HTML body editing is a raw textarea.</li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag ux">UX</span>
+            </div>
+          </article>
+
+          <article class="flow">
+            <h3>18. Admin Settings</h3>
+            <p>
+              Route: <code>/admin/settings</code>. Superadmins edit store name,
+              logo, favicon, support email, SEO fields, and pending payment
+              expiry minutes.
+            </p>
+            <ul>
+              <li>Regular admins see disabled save behavior.</li>
+              <li>Support email and positive expiry are validated.</li>
+              <li>
+                Schema includes currency, locale, checkout enabled, and
+                maintenance mode, but UI does not expose them.
+              </li>
+              <li>
+                Logo/favicon use filename dropdowns without preview or upload.
+              </li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag defect">Defect</span>
+              <span class="tag ux">UX</span>
+            </div>
+          </article>
+
+          <article class="flow">
+            <h3>19. Admin Orders, Shipment, and Refunds</h3>
+            <p>
+              Routes: <code>/admin/orders</code> and
+              <code>/admin/orders/$id</code>. Admins can search/filter recent
+              orders, inspect details, update shipment state, and record manual
+              refunds.
+            </p>
+            <ul>
+              <li>Only paid orders can be fulfilled.</li>
+              <li>Fulfillment transitions are validated.</li>
+              <li>
+                Manual refund does not call Xendit and records local ledger
+                state.
+              </li>
+              <li>
+                Refund amount is not checked against order total or previous
+                refunds.
+              </li>
+              <li>A partial refund still marks payment status as refunded.</li>
+              <li>
+                Shipment/refund submits have no try/catch, no pending state, and
+                no confirmation.
+              </li>
+              <li>
+                Search filters only the latest 100 orders fetched from Convex.
+              </li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag defect">Defect</span>
+              <span class="tag ux">UX</span>
+            </div>
+          </article>
+
+          <article class="flow">
+            <h3>20. Admin Activity Logs</h3>
+            <p>
+              Route: <code>/admin/activity</code>. Shows the most recent admin
+              activity entries.
+            </p>
+            <ul>
+              <li>Activity is append-only for important admin actions.</li>
+              <li>Only recent activity is visible.</li>
+              <li>
+                Metadata, actor names, filters, and linked targets are not
+                shown.
+              </li>
+              <li>No empty state if there are no records.</li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag ux">UX</span>
+            </div>
+          </article>
+
+          <article class="flow">
+            <h3>21. Xendit Webhooks, Expiry, and Cron Cleanup</h3>
+            <p>
+              Convex HTTP route: <code>/api/xendit/webhook</code>. Webhooks are
+              token checked, normalized, deduped, and applied to order/payment,
+              stock, and coupon state.
+            </p>
+            <ul>
+              <li>
+                Paid webhooks mark payment/order paid, reduce stock, consume
+                reserved coupons, and send emails.
+              </li>
+              <li>
+                Failed/expired webhooks release stock and coupon reservations.
+              </li>
+              <li>Duplicate events are stored but do not reapply state.</li>
+              <li>
+                Rejected webhook events are stored, but no admin UI exposes
+                them.
+              </li>
+              <li>
+                Retry after failed/expired payment relies on the 10-minute cron
+                for eventual expiry cleanup if a fresh scheduled expiry is not
+                created.
+              </li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag ux">UX</span>
+              <span class="tag gap">Operational visibility</span>
+            </div>
+          </article>
+
+          <article class="flow">
+            <h3>22. Health Checks and Launch QA</h3>
+            <p>
+              Route: <code>/api/health</code>. Convex also has
+              <code>health:check</code>. Launch QA docs describe manual smoke
+              tests.
+            </p>
+            <ul>
+              <li>
+                Web health route returns static service and timestamp JSON.
+              </li>
+              <li>
+                It does not verify Convex connectivity, auth, Xendit, Resend, or
+                storage configuration.
+              </li>
+              <li>
+                Manual QA exists in docs, but the app has no admin launch
+                readiness dashboard.
+              </li>
+            </ul>
+            <div class="tag-row">
+              <span class="tag gap">Observability</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="defects">
+        <h2>Likely Defects and Behavior Gaps</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Severity</th>
+              <th>Finding</th>
+              <th>Evidence</th>
+              <th>Proposed Fix</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="severity high">High</td>
+              <td>
+                Payment page first paint is mostly empty after checkout
+                redirect.
+              </td>
+              <td>
+                <code>/payment/$orderNumber</code> renders only "Loading order"
+                when <code>useQuery</code> returns undefined. Local SSR response
+                confirms only the loading shell is sent.
+              </td>
+              <td>
+                Add route-level pending UI and a payment skeleton. Pass order
+                number and known order summary through navigation state after
+                checkout so payment can render an immediate confirmation shell.
+              </td>
+            </tr>
+            <tr>
+              <td class="severity high">High</td>
+              <td>
+                Protected nested routes can throw instead of showing
+                login/access states.
+              </td>
+              <td>
+                <code>listCustomerOrders</code>, <code>getCustomerOrder</code>,
+                <code>getPaymentOrder</code>, and admin order queries throw when
+                auth is missing.
+              </td>
+              <td>
+                Return typed access states from public route queries, or add
+                route-level error components that turn auth errors into login
+                prompts.
+              </td>
+            </tr>
+            <tr>
+              <td class="severity high">High</td>
+              <td>
+                Admin shell can run a throwing workspace query before access is
+                resolved.
+              </td>
+              <td>
+                <code>AdminModulePage</code> calls <code>requireAdmin</code> and
+                <code>getWorkspace</code> simultaneously.
+                <code>getWorkspace</code>
+                throws for non-admin users.
+              </td>
+              <td>
+                Gate workspace loading behind a confirmed allowed admin state,
+                or change workspace query to return an access object instead of
+                throwing.
+              </td>
+            </tr>
+            <tr>
+              <td class="severity high">High</td>
+              <td>
+                Manual refund can exceed the order total and still marks the
+                payment refunded.
+              </td>
+              <td>
+                <code>recordManualRefund</code> checks positive money only. It
+                does not cap amount by order total or previous refunds.
+              </td>
+              <td>
+                Validate remaining refundable amount, distinguish partial and
+                full refunds, and require confirmation before saving.
+              </td>
+            </tr>
+            <tr>
+              <td class="severity high">High</td>
+              <td>
+                Homepage featured category slugs are editable but ignored.
+              </td>
+              <td>
+                Admin content saves <code>featuredCategorySlugs</code>, but
+                storefront <code>getHome</code> simply takes the first six
+                active products by sort order.
+              </td>
+              <td>
+                Filter featured products by published category slugs when
+                present, and show a preview/count in admin.
+              </td>
+            </tr>
+            <tr>
+              <td class="severity medium">Medium</td>
+              <td>Homepage footer text is editable but not rendered.</td>
+              <td>
+                Admin content and schema include <code>footerText</code>, but
+                the root layout/storefront does not display it.
+              </td>
+              <td>
+                Render footer text in the root layout or remove it from admin
+                until it is used.
+              </td>
+            </tr>
+            <tr>
+              <td class="severity medium">Medium</td>
+              <td>
+                Homepage banner image field exists in schema but is not
+                editable.
+              </td>
+              <td>
+                <code>homepageBanners</code> supports <code>imageId</code>, but
+                the admin form parses only <code>Title|Body|Href</code>.
+              </td>
+              <td>
+                Replace pipe text with repeated banner rows that include title,
+                body, href, image picker, and inline upload.
+              </td>
+            </tr>
+            <tr>
+              <td class="severity medium">Medium</td>
+              <td>
+                Settings schema has fields that cannot be managed from UI.
+              </td>
+              <td>
+                <code>currency</code>, <code>locale</code>,
+                <code>checkoutEnabled</code>, and <code>maintenanceMode</code>
+                exist in schema/default settings but are not in settings form.
+              </td>
+              <td>
+                Add simple controls for checkout enabled and maintenance mode
+                first. Keep currency/locale read-only or implement carefully.
+              </td>
+            </tr>
+            <tr>
+              <td class="severity medium">Medium</td>
+              <td>
+                Cart can route to checkout even when checkout is disabled.
+              </td>
+              <td>
+                <code>storefront.getCart</code> does not include site settings,
+                while <code>checkout.getCheckout</code> checks
+                <code>checkoutEnabled</code>.
+              </td>
+              <td>
+                Include checkout availability in cart query and replace checkout
+                CTA with a clear disabled message when checkout is off.
+              </td>
+            </tr>
+            <tr>
+              <td class="severity medium">Medium</td>
+              <td>
+                Product detail can briefly show add-to-cart before auth state
+                resolves.
+              </td>
+              <td>
+                UI checks <code>current === null</code> but not
+                <code>current === undefined</code>.
+              </td>
+              <td>
+                Treat undefined as loading and show a stable auth-aware CTA
+                skeleton until session is known.
+              </td>
+            </tr>
+            <tr>
+              <td class="severity medium">Medium</td>
+              <td>Xendit invoice creation does not require an invoice URL.</td>
+              <td>
+                Xendit client validates invoice id and amount, but
+                <code>invoice_url</code> is optional. Payment can become pending
+                without a usable checkout URL.
+              </td>
+              <td>
+                Require <code>invoice_url</code> for successful invoice
+                creation, or mark configuration/provider failure with a clear
+                recovery path.
+              </td>
+            </tr>
+            <tr>
+              <td class="severity medium">Medium</td>
+              <td>Admin order search only searches the latest 100 orders.</td>
+              <td>
+                <code>listAdminOrders</code> takes 100 orders, then filters in
+                memory.
+              </td>
+              <td>
+                Add indexed filters or a paginated search strategy before real
+                order volume grows.
+              </td>
+            </tr>
+            <tr>
+              <td class="severity medium">Medium</td>
+              <td>
+                Admin order shipment and refund forms have no error handling.
+              </td>
+              <td>
+                <code>submitShipment</code> and <code>submitRefund</code> await
+                mutations without try/catch or pending state.
+              </td>
+              <td>
+                Add pending state, disabled submit, error message, and
+                confirmation for refund.
+              </td>
+            </tr>
+            <tr>
+              <td class="severity medium">Medium</td>
+              <td>Coupon preview query exists but is unused.</td>
+              <td>
+                <code>checkout.previewCoupon</code> exists, but checkout form
+                only sends the coupon during order creation.
+              </td>
+              <td>
+                Add "Apply" or live debounced preview and show discount, limits,
+                and errors before order submit.
+              </td>
+            </tr>
+            <tr>
+              <td class="severity low">Low</td>
+              <td>Cart quantity field can feel stale.</td>
+              <td>
+                Cart item quantity input uses <code>defaultValue</code> instead
+                of controlled state keyed by item.
+              </td>
+              <td>
+                Use controlled per-item quantity state or reset the form key
+                after cart data changes.
+              </td>
+            </tr>
+            <tr>
+              <td class="severity low">Low</td>
+              <td>Activity and operational events are too hidden.</td>
+              <td>
+                Activity logs show only recent basic rows. Webhook events are
+                stored but not visible in admin.
+              </td>
+              <td>
+                Add details, filters, target links, webhook event review, and
+                failed event indicators.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="ux">
+        <h2>UX Issues Found So Far</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Area</th>
+              <th>Issue</th>
+              <th>Why It Feels Hard</th>
+              <th>Simple Fix</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Global navigation</td>
+              <td>
+                Customer, setup, and admin links are mixed in one flat nav.
+              </td>
+              <td>Users cannot tell what mode they are in.</td>
+              <td>
+                Separate store nav from account/admin nav. Hide setup after
+                bootstrap.
+              </td>
+            </tr>
+            <tr>
+              <td>Loading states</td>
+              <td>Many routes render small text loading pages.</td>
+              <td>Pages appear blank, then jump to real layout.</td>
+              <td>
+                Use skeletons matching the final layout and keep previous data
+                while refreshing.
+              </td>
+            </tr>
+            <tr>
+              <td>Feedback</td>
+              <td>Most actions use inline messages only.</td>
+              <td>Users miss success/failure and do not know what changed.</td>
+              <td>
+                Add app-level toast/snackbar plus field-level errors where
+                needed.
+              </td>
+            </tr>
+            <tr>
+              <td>Forms</td>
+              <td>
+                Raw text formats for variant options and homepage banners.
+              </td>
+              <td>Users must learn hidden syntax.</td>
+              <td>
+                Replace with repeated structured rows and simple add/remove
+                buttons.
+              </td>
+            </tr>
+            <tr>
+              <td>Admin product creation</td>
+              <td>
+                Product setup requires media upload first, then product, then
+                variant, then inventory.
+              </td>
+              <td>Publishing a product is a multi-tab scavenger hunt.</td>
+              <td>
+                One product editor with sections: basics, media, variants,
+                stock, SEO, publish.
+              </td>
+            </tr>
+            <tr>
+              <td>Media</td>
+              <td>Pickers show filenames, not thumbnails.</td>
+              <td>Admins cannot confidently pick the right image.</td>
+              <td>
+                Thumbnail picker with search, selected preview, and inline
+                upload.
+              </td>
+            </tr>
+            <tr>
+              <td>Checkout</td>
+              <td>Coupon errors happen after full submit.</td>
+              <td>
+                Users fill the whole form before learning discount failed.
+              </td>
+              <td>Apply/preview coupon before final payment step.</td>
+            </tr>
+            <tr>
+              <td>Payment</td>
+              <td>Retry rules are hidden.</td>
+              <td>Expired payment looks scary even though retry exists.</td>
+              <td>
+                Show explicit status copy, retry availability, and stock caveat.
+              </td>
+            </tr>
+            <tr>
+              <td>Statuses</td>
+              <td>
+                Status values are raw text like <code>pending_payment</code>.
+              </td>
+              <td>Important state is not scannable.</td>
+              <td>Status badges with labels, color, and short descriptions.</td>
+            </tr>
+            <tr>
+              <td>Tables on mobile</td>
+              <td>Admin/customer tables rely on horizontal scroll.</td>
+              <td>Important actions can be off-screen.</td>
+              <td>Use responsive list rows/cards for small screens.</td>
+            </tr>
+            <tr>
+              <td>Dangerous actions</td>
+              <td>
+                Archive, delete, soft delete, deactivate, and refund have no
+                confirmation.
+              </td>
+              <td>Admins can make destructive changes accidentally.</td>
+              <td>
+                Confirmation modal with consequence text and safer labels.
+              </td>
+            </tr>
+            <tr>
+              <td>Admin order work</td>
+              <td>Shipment and refund forms do not show pending or errors.</td>
+              <td>
+                Admins can click repeatedly and may not know a save failed.
+              </td>
+              <td>
+                Disable buttons while saving, show errors, add confirmation for
+                refunds.
+              </td>
+            </tr>
+            <tr>
+              <td>Email templates</td>
+              <td>No rendered preview or variable helper.</td>
+              <td>Superadmins can break emails without seeing the result.</td>
+              <td>Preview pane, variable list, and test-send button.</td>
+            </tr>
+            <tr>
+              <td>Admin dashboard</td>
+              <td>Default admin route jumps to products.</td>
+              <td>Admins do not get a "what needs attention" overview.</td>
+              <td>
+                Create a small dashboard: paid orders to fulfill, low stock,
+                failed emails, recent payments.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="solutions">
+        <h2>Proposed Solutions</h2>
+
+        <section class="card">
+          <h3>Immediate UX Fixes</h3>
+          <ol>
+            <li>
+              Add a shared notification/toast component and use it for product,
+              cart, checkout, admin, media, order, and settings actions.
+            </li>
+            <li>
+              Add route-level pending and error components, starting with
+              payment, checkout, customer orders, and admin orders.
+            </li>
+            <li>
+              Replace payment loading text with a full payment skeleton and
+              immediate post-checkout confirmation state.
+            </li>
+            <li>
+              Add pending states to all mutations that can be clicked more than
+              once: add-to-cart, cart update/remove, product save, media delete,
+              shipment save, refund save, coupon save.
+            </li>
+            <li>Convert raw status strings to shared labels and badges.</li>
+          </ol>
+        </section>
+
+        <section class="card">
+          <h3>Product/Admin Workflow Fixes</h3>
+          <ol>
+            <li>
+              Build a focused product editor component with tabs or sections:
+              Basics, Media, Variants, Inventory, SEO, Publish.
+            </li>
+            <li>
+              Add inline media upload to product, category, content, logo, and
+              favicon fields. On successful upload, select the new asset.
+            </li>
+            <li>Replace media dropdowns with thumbnail pickers.</li>
+            <li>
+              Add a publish readiness checklist: image, category, active
+              variant, stock, price, SEO optional.
+            </li>
+            <li>
+              Replace variant option text syntax with structured option rows.
+            </li>
+          </ol>
+        </section>
+
+        <section class="card">
+          <h3>Checkout and Payment Fixes</h3>
+          <ol>
+            <li>
+              Use <code>previewCoupon</code> in checkout and display applied
+              discount before order submit.
+            </li>
+            <li>
+              Show checkout disabled state in the cart before users click
+              checkout.
+            </li>
+            <li>
+              On payment page, show invoice expiry countdown and clear retry
+              copy.
+            </li>
+            <li>
+              Require a usable Xendit invoice URL before treating invoice
+              creation as successful.
+            </li>
+            <li>
+              If invoice creation fails, keep the user on a recovery page with
+              "Try creating invoice again" and "View order" actions.
+            </li>
+          </ol>
+        </section>
+
+        <section class="card">
+          <h3>Data Loading and Flicker Fixes</h3>
+          <ol>
+            <li>
+              Split <code>admin.getWorkspace</code> into module-specific queries
+              so each tab only reacts to data it needs.
+            </li>
+            <li>
+              Gate protected data queries behind confirmed auth/access state.
+            </li>
+            <li>
+              Add TanStack route loaders or pending components for routes that
+              currently paint blank loading shells.
+            </li>
+            <li>Keep previous data visible during refresh when possible.</li>
+          </ol>
+        </section>
+
+        <section class="card">
+          <h3>Operational Safety Fixes</h3>
+          <ol>
+            <li>
+              Validate manual refund amount against remaining refundable total.
+            </li>
+            <li>
+              Add confirmation dialogs for refund, archive, delete, deactivate,
+              and soft delete actions.
+            </li>
+            <li>
+              Expose webhook events, failed emails, and payment failures in an
+              admin operations view.
+            </li>
+            <li>
+              Add indexed or paginated order search before order volume grows.
+            </li>
+          </ol>
+        </section>
+      </section>
+
+      <section id="implementation">
+        <h2>Suggested Implementation Plan</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Phase</th>
+              <th>Scope</th>
+              <th>Why First</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>
+                Shared toast, pending buttons, route error UI, payment skeleton,
+                auth-gated protected queries.
+              </td>
+              <td>
+                Biggest perceived quality improvement with the smallest product
+                model change.
+              </td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>
+                Payment retry copy, coupon preview, checkout disabled
+                visibility, Xendit invoice URL validation.
+              </td>
+              <td>
+                Reduces failed-checkout anxiety and fixes real recovery gaps.
+              </td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>
+                Inline media upload, thumbnail media picker, product publish
+                readiness checklist.
+              </td>
+              <td>Directly solves the hardest admin product workflow.</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>
+                Structured forms for variants, banners, emails, and coupons.
+              </td>
+              <td>Removes hidden syntax and late validation errors.</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>
+                Split admin workspace queries, improve order search, add
+                operational dashboards.
+              </td>
+              <td>
+                Improves performance, flicker, and long-term admin scalability.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p class="warning">
+          Keep each route file focused on one route-level responsibility. For
+          the bigger screens, extract small local components or shared
+          components instead of continuing to grow <code>route.tsx</code> files.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

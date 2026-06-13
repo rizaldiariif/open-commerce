@@ -5,9 +5,11 @@ import { type FormEvent, useState } from 'react'
 import { useMutation } from 'convex/react'
 
 import { api } from '../../../../convex/_generated/api'
+import { StatusBadge } from '../../../components/StatusBadge'
 import {
   type AdminMessage,
   type AdminWorkspace,
+  ConfirmButton,
   Panel,
   TextField,
   dateInput,
@@ -32,10 +34,13 @@ function CouponsPanel({
   const upsertCoupon = useMutation(api.admin.upsertCoupon)
   const setCouponActive = useMutation(api.admin.setCouponActive)
   const [couponForm, setCouponForm] = useState(emptyCouponForm)
+  const [isSaving, setIsSaving] = useState(false)
+  const [activeCouponId, setActiveCouponId] = useState<string | null>(null)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
+    setIsSaving(true)
     try {
       await upsertCoupon({
         id: idOrUndefined<'coupons'>(couponForm.id),
@@ -57,6 +62,8 @@ function CouponsPanel({
       setMessage({ type: 'success', text: 'Coupon saved.' })
     } catch (error) {
       setMessage({ type: 'error', text: errorMessage(error) })
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -103,7 +110,11 @@ function CouponsPanel({
                     {coupon.redeemedCount}
                     {coupon.usageLimit ? ` / ${coupon.usageLimit}` : ''}
                   </td>
-                  <td>{coupon.isActive ? 'Active' : 'Disabled'}</td>
+                  <td>
+                    <StatusBadge
+                      value={coupon.isActive ? 'active' : 'disabled'}
+                    />
+                  </td>
                   <td>
                     <button
                       type="button"
@@ -138,9 +149,10 @@ function CouponsPanel({
                     >
                       Edit
                     </button>
-                    <button
-                      type="button"
-                      onClick={async () => {
+                    <ConfirmButton
+                      confirmText={`${coupon.isActive ? 'Disable' : 'Enable'} coupon ${coupon.code}?`}
+                      onConfirm={async () => {
+                        setActiveCouponId(coupon._id)
                         try {
                           await setCouponActive({
                             id: coupon._id,
@@ -157,11 +169,17 @@ function CouponsPanel({
                             type: 'error',
                             text: errorMessage(error),
                           })
+                        } finally {
+                          setActiveCouponId(null)
                         }
                       }}
                     >
-                      {coupon.isActive ? 'Disable' : 'Enable'}
-                    </button>
+                      {activeCouponId === coupon._id
+                        ? 'Saving'
+                        : coupon.isActive
+                          ? 'Disable'
+                          : 'Enable'}
+                    </ConfirmButton>
                   </td>
                 </tr>
               ))}
@@ -285,7 +303,9 @@ function CouponsPanel({
               Active
             </label>
             <div className="form-actions">
-              <button type="submit">Save coupon</button>
+              <button type="submit" disabled={isSaving}>
+                {isSaving ? 'Saving coupon' : 'Save coupon'}
+              </button>
               <button
                 type="button"
                 className="ghost-button"
@@ -308,7 +328,9 @@ export const Route = createFileRoute('/admin/coupons')({
 function AdminCoupons() {
   return (
     <AdminModulePage activeModule="coupons">
-      {({ workspace, setMessage }) => <CouponsPanel workspace={workspace} setMessage={setMessage} />}
+      {({ workspace, setMessage }) => (
+        <CouponsPanel workspace={workspace} setMessage={setMessage} />
+      )}
     </AdminModulePage>
   )
 }

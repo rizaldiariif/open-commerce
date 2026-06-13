@@ -5,10 +5,13 @@ import { type FormEvent, useMemo, useState } from 'react'
 import { useMutation } from 'convex/react'
 
 import { api } from '../../../../convex/_generated/api'
+import { StatusBadge } from '../../../components/StatusBadge'
 import type { Doc, Id } from '../../../../convex/_generated/dataModel'
 import {
   type AdminMessage,
   type AdminWorkspace,
+  ConfirmButton,
+  MediaMultiSelect,
   MediaSelect,
   Panel,
   TextArea,
@@ -121,6 +124,7 @@ function ProductsPanel({
                   <th>Category</th>
                   <th>Variants</th>
                   <th>Stock</th>
+                  <th>Readiness</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -131,6 +135,7 @@ function ProductsPanel({
                     (total, variant) => total + variant.stockOnHand,
                     0,
                   )
+                  const issues = productReadinessIssues(product, variants)
 
                   return (
                     <tr key={product._id}>
@@ -138,7 +143,9 @@ function ProductsPanel({
                         <strong>{product.name}</strong>
                         <span>{product.slug}</span>
                       </td>
-                      <td>{product.status}</td>
+                      <td>
+                        <StatusBadge value={product.status} />
+                      </td>
                       <td>
                         {product.categoryId
                           ? (categoryById.get(product.categoryId)?.name ??
@@ -147,6 +154,13 @@ function ProductsPanel({
                       </td>
                       <td>{variants.length}</td>
                       <td>{stock}</td>
+                      <td>
+                        {issues.length ? (
+                          <span>{issues.join(', ')}</span>
+                        ) : (
+                          <StatusBadge value="active" />
+                        )}
+                      </td>
                       <td>
                         <button
                           type="button"
@@ -168,9 +182,9 @@ function ProductsPanel({
                         >
                           Edit
                         </button>
-                        <button
-                          type="button"
-                          onClick={async () => {
+                        <ConfirmButton
+                          confirmText={`Archive ${product.name}? It will stop appearing in the storefront.`}
+                          onConfirm={async () => {
                             try {
                               await archiveProduct({ id: product._id })
                               setMessage({
@@ -186,7 +200,7 @@ function ProductsPanel({
                           }}
                         >
                           Archive
-                        </button>
+                        </ConfirmButton>
                       </td>
                     </tr>
                   )
@@ -219,7 +233,9 @@ function ProductsPanel({
                     <tr key={variant._id}>
                       <td>
                         <strong>{variant.sku}</strong>
-                        <span>{variant.isActive ? 'Active' : 'Inactive'}</span>
+                        <StatusBadge
+                          value={variant.isActive ? 'active' : 'disabled'}
+                        />
                       </td>
                       <td>{product?.name ?? 'Missing product'}</td>
                       <td>
@@ -263,9 +279,9 @@ function ProductsPanel({
                         >
                           Edit
                         </button>
-                        <button
-                          type="button"
-                          onClick={async () => {
+                        <ConfirmButton
+                          confirmText={`Deactivate ${variant.sku}? Customers will no longer be able to buy this option.`}
+                          onConfirm={async () => {
                             try {
                               await deactivateVariant({ id: variant._id })
                               setMessage({
@@ -281,7 +297,7 @@ function ProductsPanel({
                           }}
                         >
                           Deactivate
-                        </button>
+                        </ConfirmButton>
                       </td>
                     </tr>
                   )
@@ -359,27 +375,22 @@ function ProductsPanel({
                 setProductForm((current) => ({ ...current, featuredImageId }))
               }
             />
-            <label>
-              Gallery images
-              <select
-                multiple
-                value={productForm.galleryImageIds}
-                onChange={(event) =>
-                  setProductForm((current) => ({
-                    ...current,
-                    galleryImageIds: Array.from(
-                      event.currentTarget.selectedOptions,
-                    ).map((option) => option.value),
-                  }))
-                }
-              >
-                {workspace.mediaAssets.map((asset) => (
-                  <option key={asset._id} value={asset._id}>
-                    {asset.filename}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <MediaMultiSelect
+              label="Gallery images"
+              values={productForm.galleryImageIds}
+              mediaAssets={workspace.mediaAssets}
+              onChange={(galleryImageIds) =>
+                setProductForm((current) => ({ ...current, galleryImageIds }))
+              }
+            />
+            <ProductChecklist
+              productForm={productForm}
+              variantCount={
+                productForm.id
+                  ? (variantsByProductId.get(productForm.id)?.length ?? 0)
+                  : 0
+              }
+            />
             <TextField
               label="SEO title"
               value={productForm.seoTitle}
@@ -540,6 +551,57 @@ function ProductsPanel({
   )
 }
 
+function ProductChecklist({
+  productForm,
+  variantCount,
+}: Readonly<{
+  productForm: typeof emptyProductForm
+  variantCount: number
+}>) {
+  const checks = [
+    {
+      label: 'Name and slug',
+      done: Boolean(productForm.name && productForm.slug),
+    },
+    { label: 'Category selected', done: Boolean(productForm.categoryId) },
+    {
+      label: 'Featured image selected',
+      done: Boolean(productForm.featuredImageId),
+    },
+    {
+      label: productForm.id
+        ? 'At least one variant exists'
+        : 'Save product before variants',
+      done: productForm.id ? variantCount > 0 : false,
+    },
+  ]
+
+  return (
+    <div className="readiness-box">
+      <strong>Product readiness</strong>
+      <ul>
+        {checks.map((check) => (
+          <li key={check.label} data-done={check.done ? 'true' : 'false'}>
+            {check.done ? 'Done' : 'Needs'}: {check.label}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function productReadinessIssues(
+  product: Doc<'products'>,
+  variants: Doc<'productVariants'>[],
+) {
+  const issues = []
+  if (product.status !== 'active') issues.push('Not active')
+  if (!product.featuredImageId) issues.push('No image')
+  if (!variants.some((variant) => variant.isActive))
+    issues.push('No active variant')
+  return issues
+}
+
 export const Route = createFileRoute('/admin/products')({
   component: AdminProducts,
 })
@@ -547,7 +609,9 @@ export const Route = createFileRoute('/admin/products')({
 function AdminProducts() {
   return (
     <AdminModulePage activeModule="products">
-      {({ workspace, setMessage }) => <ProductsPanel workspace={workspace} setMessage={setMessage} />}
+      {({ workspace, setMessage }) => (
+        <ProductsPanel workspace={workspace} setMessage={setMessage} />
+      )}
     </AdminModulePage>
   )
 }

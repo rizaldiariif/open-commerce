@@ -2,6 +2,8 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 
 import { api } from '../../../convex/_generated/api'
+import { LoadingState } from '../../components/RouteFeedback'
+import { StatusBadge } from '../../components/StatusBadge'
 
 export const Route = createFileRoute('/products/')({
   head: () => ({
@@ -21,11 +23,11 @@ function ProductsIndex() {
 
   if (catalog === undefined) {
     return (
-      <section className="content-page">
-        <p className="eyebrow">Storefront</p>
-        <h1>Products</h1>
-        <p>Loading current products.</p>
-      </section>
+      <LoadingState
+        eyebrow="Storefront"
+        title="Loading products"
+        body="Fetching current pricing, variants, and stock availability."
+      />
     )
   }
 
@@ -74,7 +76,9 @@ function ProductsIndex() {
                   ? 'Price pending'
                   : formatMoney(product.minPrice)}
               </small>
-              <em>{product.inStock ? 'In stock' : 'Out of stock'}</em>
+              <StatusBadge
+                value={product.inStock ? 'in_stock' : 'out_of_stock'}
+              />
             </Link>
           ))}
         </div>

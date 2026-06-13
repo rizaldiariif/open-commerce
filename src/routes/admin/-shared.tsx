@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
-import { useQuery } from 'convex/react'
+import { type ReactNode, useState } from 'react'
+import { useMutation, useQuery } from 'convex/react'
 
 import { api } from '../../../convex/_generated/api'
 import type { DataModel, Doc, Id } from '../../../convex/_generated/dataModel'
@@ -118,21 +118,27 @@ export function TextField({
   value,
   onChange,
   inputMode,
+  type = 'text',
   placeholder,
+  disabled = false,
 }: Readonly<{
   label: string
   value: string
   onChange: (value: string) => void
   inputMode?: 'numeric'
+  type?: string
   placeholder?: string
+  disabled?: boolean
 }>) {
   return (
     <label>
       {label}
       <input
+        type={type}
         value={value}
         inputMode={inputMode}
         placeholder={placeholder}
+        disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
       />
     </label>
@@ -174,18 +180,200 @@ export function MediaSelect({
   mediaAssets: MediaAsset[]
   onChange: (value: string) => void
 }>) {
+  const selectedAsset = mediaAssets.find((asset) => asset._id === value)
+
   return (
-    <label>
-      {label}
-      <select value={value} onChange={(event) => onChange(event.target.value)}>
-        <option value="">None</option>
+    <div className="media-picker">
+      <label>
+        {label}
+        <select
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+        >
+          <option value="">None</option>
+          {mediaAssets.map((asset) => (
+            <option key={asset._id} value={asset._id}>
+              {asset.filename}
+            </option>
+          ))}
+          {value && !selectedAsset ? (
+            <option value={value}>Uploaded image</option>
+          ) : null}
+        </select>
+      </label>
+      {selectedAsset ? (
+        <div className="media-option selected">
+          {selectedAsset.url ? (
+            <img src={selectedAsset.url} alt="" />
+          ) : (
+            <span>No preview</span>
+          )}
+          <strong>{selectedAsset.filename}</strong>
+        </div>
+      ) : null}
+      <InlineMediaUpload onUploaded={onChange} />
+    </div>
+  )
+}
+
+export function MediaMultiSelect({
+  label,
+  values,
+  mediaAssets,
+  onChange,
+}: Readonly<{
+  label: string
+  values: string[]
+  mediaAssets: MediaAsset[]
+  onChange: (values: string[]) => void
+}>) {
+  function toggle(assetId: string) {
+    onChange(
+      values.includes(assetId)
+        ? values.filter((value) => value !== assetId)
+        : [...values, assetId],
+    )
+  }
+
+  return (
+    <div className="media-picker">
+      <span className="media-picker-label">{label}</span>
+      <div className="media-option-grid">
         {mediaAssets.map((asset) => (
-          <option key={asset._id} value={asset._id}>
-            {asset.filename}
-          </option>
+          <button
+            key={asset._id}
+            type="button"
+            className={`media-option ${values.includes(asset._id) ? 'selected' : ''}`}
+            onClick={() => toggle(asset._id)}
+          >
+            {asset.url ? (
+              <img src={asset.url} alt="" />
+            ) : (
+              <span>No preview</span>
+            )}
+            <strong>{asset.filename}</strong>
+          </button>
         ))}
-      </select>
-    </label>
+        {mediaAssets.length === 0 ? (
+          <p className="form-help">Upload an image below to build a gallery.</p>
+        ) : null}
+      </div>
+      <InlineMediaUpload
+        onUploaded={(mediaId) => onChange([...values, mediaId])}
+      />
+    </div>
+  )
+}
+
+export function ConfirmButton({
+  children,
+  confirmText,
+  onConfirm,
+  className,
+}: Readonly<{
+  children: ReactNode
+  confirmText: string
+  onConfirm: () => void | Promise<void>
+  className?: string
+}>) {
+  return (
+    <button
+      type="button"
+      className={className}
+      onClick={() => {
+        if (window.confirm(confirmText)) {
+          void onConfirm()
+        }
+      }}
+    >
+      {children}
+    </button>
+  )
+}
+
+function InlineMediaUpload({
+  onUploaded,
+}: Readonly<{
+  onUploaded: (mediaId: string) => void
+}>) {
+  const generateUploadUrl = useMutation(api.admin.generateUploadUrl)
+  const saveUploadedMedia = useMutation(api.admin.saveUploadedMedia)
+  const [file, setFile] = useState<File | null>(null)
+  const [altText, setAltText] = useState('')
+  const [message, setMessage] = useState<AdminMessage | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+
+  async function handleUpload() {
+    if (!file) {
+      setMessage({ type: 'error', text: 'Choose an image to upload.' })
+      return
+    }
+
+    setIsUploading(true)
+    setMessage(null)
+    try {
+      const uploadUrl = await generateUploadUrl()
+      const uploadResult = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': file.type || 'application/octet-stream' },
+        body: file,
+      })
+
+      if (!uploadResult.ok) {
+        throw new Error('Upload failed.')
+      }
+
+      const { storageId } = (await uploadResult.json()) as {
+        storageId: string
+      }
+      const mediaId = await saveUploadedMedia({
+        storageId,
+        filename: file.name,
+        contentType: file.type || 'application/octet-stream',
+        sizeBytes: file.size,
+        altText: textOrUndefined(altText),
+      })
+
+      setFile(null)
+      setAltText('')
+      setMessage({ type: 'success', text: 'Image uploaded and selected.' })
+      onUploaded(mediaId)
+    } catch (error) {
+      setMessage({ type: 'error', text: errorMessage(error) })
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  return (
+    <div className="media-upload">
+      <label>
+        Upload image
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+        />
+      </label>
+      <label>
+        Alt text
+        <input
+          value={altText}
+          placeholder="Short image description"
+          onChange={(event) => setAltText(event.target.value)}
+        />
+      </label>
+      <button
+        type="button"
+        onClick={() => void handleUpload()}
+        disabled={isUploading}
+      >
+        {isUploading ? 'Uploading' : 'Upload and select'}
+      </button>
+      {message ? (
+        <p className={`form-message ${message.type}`}>{message.text}</p>
+      ) : null}
+    </div>
   )
 }
 

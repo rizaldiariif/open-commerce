@@ -34,6 +34,7 @@ const paymentStatus = v.union(
   v.literal('paid'),
   v.literal('failed'),
   v.literal('expired'),
+  v.literal('partially_refunded'),
   v.literal('refunded'),
 )
 
@@ -55,12 +56,6 @@ async function requireAdminProfile(ctx: QueryCtx | MutationCtx) {
   return profile
 }
 
-async function requireCustomerProfile(ctx: QueryCtx | MutationCtx) {
-  const profile = await currentProfile(ctx)
-  if (!profile) throw new ConvexError('Authentication is required.')
-  return profile
-}
-
 export const listAdminOrders = query({
   args: {
     orderStatus: v.optional(orderStatus),
@@ -69,57 +64,76 @@ export const listAdminOrders = query({
     search: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireAdminProfile(ctx)
+    const profile = await currentProfile(ctx)
+    if (!profile) return { status: 'unauthenticated' as const, orders: [] }
+    if (!adminRoles.has(profile.role)) {
+      return { status: 'forbidden' as const, orders: [] }
+    }
     const orders = await ctx.db.query('orders').order('desc').take(100)
     const search = args.search?.trim().toLowerCase()
 
-    return orders
-      .filter((order) =>
-        args.orderStatus ? order.orderStatus === args.orderStatus : true,
-      )
-      .filter((order) =>
-        args.paymentStatus ? order.paymentStatus === args.paymentStatus : true,
-      )
-      .filter((order) =>
-        args.fulfillmentStatus
-          ? order.fulfillmentStatus === args.fulfillmentStatus
-          : true,
-      )
-      .filter((order) => {
-        if (!search) return true
-        return (
-          order.orderNumber.toLowerCase().includes(search) ||
-          order.email.toLowerCase().includes(search) ||
-          order.customerName.toLowerCase().includes(search)
+    return {
+      status: 'ready' as const,
+      orders: orders
+        .filter((order) =>
+          args.orderStatus ? order.orderStatus === args.orderStatus : true,
         )
-      })
+        .filter((order) =>
+          args.paymentStatus
+            ? order.paymentStatus === args.paymentStatus
+            : true,
+        )
+        .filter((order) =>
+          args.fulfillmentStatus
+            ? order.fulfillmentStatus === args.fulfillmentStatus
+            : true,
+        )
+        .filter((order) => {
+          if (!search) return true
+          return (
+            order.orderNumber.toLowerCase().includes(search) ||
+            order.email.toLowerCase().includes(search) ||
+            order.customerName.toLowerCase().includes(search)
+          )
+        }),
+    }
   },
 })
 
 export const getAdminOrder = query({
   args: { orderId: v.id('orders') },
   handler: async (ctx, args) => {
-    await requireAdminProfile(ctx)
-    return await orderBundle(ctx, args.orderId)
+    const profile = await currentProfile(ctx)
+    if (!profile) return { status: 'unauthenticated' as const, detail: null }
+    if (!adminRoles.has(profile.role)) {
+      return { status: 'forbidden' as const, detail: null }
+    }
+    return {
+      status: 'ready' as const,
+      detail: await orderBundle(ctx, args.orderId),
+    }
   },
 })
 
 export const listCustomerOrders = query({
   args: {},
   handler: async (ctx) => {
-    const profile = await requireCustomerProfile(ctx)
-    return await ctx.db
+    const profile = await currentProfile(ctx)
+    if (!profile) return { status: 'unauthenticated' as const, orders: [] }
+    const orders = await ctx.db
       .query('orders')
       .withIndex('by_profile_created', (q) => q.eq('profileId', profile._id))
       .order('desc')
       .collect()
+    return { status: 'ready' as const, orders }
   },
 })
 
 export const getCustomerOrder = query({
   args: { orderNumber: v.string() },
   handler: async (ctx, args) => {
-    const profile = await requireCustomerProfile(ctx)
+    const profile = await currentProfile(ctx)
+    if (!profile) return { status: 'unauthenticated' as const, detail: null }
     const order = await ctx.db
       .query('orders')
       .withIndex('by_order_number', (q) =>
@@ -127,8 +141,13 @@ export const getCustomerOrder = query({
       )
       .unique()
 
-    if (!order || order.profileId !== profile._id) return null
-    return await orderBundle(ctx, order._id)
+    if (!order || order.profileId !== profile._id) {
+      return { status: 'not_found' as const, detail: null }
+    }
+    return {
+      status: 'ready' as const,
+      detail: await orderBundle(ctx, order._id),
+    }
   },
 })
 
@@ -222,7 +241,10 @@ export const recordManualRefund = mutation({
 
     const order = await ctx.db.get(args.orderId)
     if (!order) throw new ConvexError('Order not found.')
-    if (order.paymentStatus !== 'paid') {
+    if (
+      order.paymentStatus !== 'paid' &&
+      order.paymentStatus !== 'partially_refunded'
+    ) {
       throw new ConvexError('Only paid orders can be marked refunded.')
     }
 
@@ -230,7 +252,27 @@ export const recordManualRefund = mutation({
       .query('payments')
       .withIndex('by_order', (q) => q.eq('orderId', order._id))
       .unique()
+    const previousRefunds = await ctx.db
+      .query('manualRefunds')
+      .withIndex('by_order', (q) => q.eq('orderId', order._id))
+      .collect()
+    const refundedTotal = previousRefunds.reduce(
+      (total, refund) => total + refund.amount,
+      0,
+    )
+    const remainingRefundable = Math.max(0, order.grandTotal - refundedTotal)
+    if (args.amount > remainingRefundable) {
+      throw new ConvexError(
+        `Refund amount exceeds remaining refundable total of ${formatMoney(
+          remainingRefundable,
+          order.currency,
+        )}.`,
+      )
+    }
+
     const now = Date.now()
+    const nextPaymentStatus =
+      args.amount === remainingRefundable ? 'refunded' : 'partially_refunded'
 
     await ctx.db.insert('manualRefunds', {
       orderId: order._id,
@@ -241,10 +283,13 @@ export const recordManualRefund = mutation({
       adminProfileId: actor._id,
       createdAt: now,
     })
-    await ctx.db.patch(order._id, { paymentStatus: 'refunded', updatedAt: now })
+    await ctx.db.patch(order._id, {
+      paymentStatus: nextPaymentStatus,
+      updatedAt: now,
+    })
     if (payment) {
       await ctx.db.patch(payment._id, {
-        status: 'refunded',
+        status: nextPaymentStatus,
         rawStatus: 'manual_refund_recorded',
         updatedAt: now,
       })
@@ -351,4 +396,12 @@ async function sendFulfillmentEmail(
 function cleanOptionalText(value: string | undefined) {
   const trimmed = value?.trim()
   return trimmed ? trimmed : undefined
+}
+
+function formatMoney(value: number, currency: string) {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 0,
+  }).format(value)
 }

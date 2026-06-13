@@ -252,6 +252,7 @@ export default defineSchema({
       v.literal('paid'),
       v.literal('failed'),
       v.literal('expired'),
+      v.literal('partially_refunded'),
       v.literal('refunded'),
     ),
     fulfillmentStatus: v.union(
@@ -319,6 +320,7 @@ export default defineSchema({
       v.literal('paid'),
       v.literal('failed'),
       v.literal('expired'),
+      v.literal('partially_refunded'),
       v.literal('refunded'),
     ),
     rawStatus: v.optional(v.string()),

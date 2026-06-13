@@ -11,6 +11,8 @@ import { useAction, useMutation, useQuery } from 'convex/react'
 
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import { AccessRequired, LoadingState } from '../../components/RouteFeedback'
+import { useToast } from '../../components/Toast'
 
 export const Route = createFileRoute('/checkout')({
   head: () => ({
@@ -41,6 +43,7 @@ function Checkout() {
   const createOrder = useMutation(api.checkout.createOrder)
   const createInvoice = useAction(api.payments.createInvoiceForOrder)
   const navigate = useNavigate()
+  const { notify } = useToast()
   const [selectedAddressId, setSelectedAddressId] = useState('')
   const [address, setAddress] = useState(emptyAddress)
   const [contact, setContact] = useState({ name: '', email: '', phone: '' })
@@ -49,6 +52,15 @@ function Checkout() {
   const [saveAddress, setSaveAddress] = useState(true)
   const [message, setMessage] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const couponPreview = useQuery(
+    api.checkout.previewCoupon,
+    checkout?.status === 'ready' && checkout.cart && couponCode.trim()
+      ? {
+          code: couponCode,
+          subtotal: checkout.cart.subtotal,
+        }
+      : 'skip',
+  )
 
   const selectedAddress = useMemo(
     () =>
@@ -106,15 +118,17 @@ function Checkout() {
         notes: notes || undefined,
         saveAddress,
       })
+      notify({ type: 'success', text: 'Order created. Opening payment.' })
       await createInvoice({ orderId: result.orderId })
       await navigate({
         to: '/payment/$orderNumber',
         params: { orderNumber: result.orderNumber },
       })
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : 'Could not place order.',
-      )
+      const text =
+        error instanceof Error ? error.message : 'Could not place order.'
+      setMessage(text)
+      notify({ type: 'error', text })
     } finally {
       setIsSubmitting(false)
     }
@@ -122,27 +136,21 @@ function Checkout() {
 
   if (checkout === undefined) {
     return (
-      <section className="content-page">
-        <p className="eyebrow">Checkout</p>
-        <h1>Loading checkout</h1>
-      </section>
+      <LoadingState
+        eyebrow="Checkout"
+        title="Loading checkout"
+        body="Checking your cart, addresses, and payment availability."
+      />
     )
   }
 
   if (checkout.status === 'unauthenticated') {
     return (
-      <section className="content-page">
-        <p className="eyebrow">Checkout</p>
-        <h1>Login to checkout</h1>
-        <p>Orders are attached to signed-in customer accounts.</p>
-        <Link
-          to="/login"
-          search={{ redirect: '/checkout' }}
-          className="primary-link"
-        >
-          Login
-        </Link>
-      </section>
+      <AccessRequired
+        title="Login to checkout"
+        body="Orders are attached to signed-in customer accounts."
+        redirect="/checkout"
+      />
     )
   }
 
@@ -157,6 +165,15 @@ function Checkout() {
       </section>
     )
   }
+
+  const discountAmount =
+    couponPreview?.status === 'valid' ? couponPreview.discountAmount : 0
+  const grandTotal = Math.max(0, checkout.cart.subtotal - discountAmount)
+  const checkoutDisabledReason = !checkout.settings.checkoutEnabled
+    ? 'Checkout is temporarily disabled by store settings.'
+    : !checkout.cart.canCheckout
+      ? 'Resolve cart availability issues before checkout.'
+      : null
 
   return (
     <section className="checkout-page">
@@ -297,21 +314,32 @@ function Checkout() {
             <input
               value={couponCode}
               placeholder="WELCOME10"
-              onChange={(event) => setCouponCode(event.target.value)}
+              onChange={(event) =>
+                setCouponCode(event.target.value.toUpperCase())
+              }
             />
           </label>
+          <CouponFeedback preview={couponPreview} />
           <dl>
             <div>
               <dt>Subtotal</dt>
               <dd>{formatMoney(checkout.cart.subtotal)}</dd>
             </div>
             <div>
+              <dt>Discount</dt>
+              <dd>-{formatMoney(discountAmount)}</dd>
+            </div>
+            <div>
               <dt>Shipping</dt>
               <dd>{formatMoney(0)}</dd>
             </div>
+            <div>
+              <dt>Total</dt>
+              <dd>{formatMoney(grandTotal)}</dd>
+            </div>
           </dl>
-          {!checkout.cart.canCheckout ? (
-            <p className="cart-warning">Resolve cart issues before checkout.</p>
+          {checkoutDisabledReason ? (
+            <p className="cart-warning">{checkoutDisabledReason}</p>
           ) : null}
           <button
             type="submit"
@@ -323,6 +351,35 @@ function Checkout() {
       </form>
     </section>
   )
+}
+
+function CouponFeedback({
+  preview,
+}: Readonly<{
+  preview:
+    | {
+        status: 'unauthenticated' | 'empty' | 'not_found' | 'invalid' | 'valid'
+        discountAmount?: number
+        reason?: string
+      }
+    | undefined
+}>) {
+  if (preview === undefined) return null
+  if (preview.status === 'empty') return null
+  if (preview.status === 'valid') {
+    return (
+      <p className="coupon-preview success">
+        Coupon applied: {formatMoney(preview.discountAmount ?? 0)} discount.
+      </p>
+    )
+  }
+  if (preview.status === 'not_found') {
+    return <p className="coupon-preview error">Coupon was not found.</p>
+  }
+  if (preview.status === 'invalid') {
+    return <p className="coupon-preview error">{preview.reason}</p>
+  }
+  return null
 }
 
 function AddressFields({

@@ -3,6 +3,9 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useAction, useQuery } from 'convex/react'
 
 import { api } from '../../../../convex/_generated/api'
+import { AccessRequired, LoadingState } from '../../../components/RouteFeedback'
+import { StatusBadge } from '../../../components/StatusBadge'
+import { useToast } from '../../../components/Toast'
 
 export const Route = createFileRoute('/account/orders/$orderNumber')({
   component: AccountOrderDetail,
@@ -10,46 +13,65 @@ export const Route = createFileRoute('/account/orders/$orderNumber')({
 
 function AccountOrderDetail() {
   const { orderNumber } = Route.useParams()
-  const detail = useQuery(api.orders.getCustomerOrder, { orderNumber })
+  const detailState = useQuery(api.orders.getCustomerOrder, { orderNumber })
   const createInvoice = useAction(api.payments.createInvoiceForOrder)
   const navigate = useNavigate()
+  const { notify } = useToast()
   const [isStartingPayment, setIsStartingPayment] = useState(false)
   const [paymentError, setPaymentError] = useState<string | null>(null)
 
   async function handlePayment() {
-    if (!detail) return
+    if (detailState?.status !== 'ready' || !detailState.detail) return
 
     setIsStartingPayment(true)
     setPaymentError(null)
     try {
+      const detail = detailState.detail
       const result = await createInvoice({ orderId: detail.order._id })
       if (result.checkoutUrl) {
+        notify({ type: 'success', text: 'Payment invoice is ready.' })
         window.location.assign(result.checkoutUrl)
         return
       }
+      notify({
+        type: 'info',
+        text: 'Invoice was created. Opening payment page.',
+      })
       await navigate({
         to: '/payment/$orderNumber',
         params: { orderNumber: detail.order.orderNumber },
       })
     } catch (error) {
-      setPaymentError(
-        error instanceof Error ? error.message : 'Could not start payment.',
-      )
+      const text =
+        error instanceof Error ? error.message : 'Could not start payment.'
+      setPaymentError(text)
+      notify({ type: 'error', text })
     } finally {
       setIsStartingPayment(false)
     }
   }
 
-  if (detail === undefined) {
+  if (detailState === undefined) {
     return (
-      <section className="content-page">
-        <p className="eyebrow">Account</p>
-        <h1>Loading order</h1>
-      </section>
+      <LoadingState
+        eyebrow="Account"
+        title="Loading order"
+        body="Checking payment, delivery, and item details."
+      />
     )
   }
 
-  if (!detail) {
+  if (detailState.status === 'unauthenticated') {
+    return (
+      <AccessRequired
+        title="Login to view this order"
+        body="Order details are only visible to the account that placed the order."
+        redirect={`/account/orders/${orderNumber}`}
+      />
+    )
+  }
+
+  if (detailState.status === 'not_found' || !detailState.detail) {
     return (
       <section className="content-page">
         <p className="eyebrow">Account</p>
@@ -61,6 +83,7 @@ function AccountOrderDetail() {
     )
   }
 
+  const detail = detailState.detail
   const activePaymentUrl = activeCheckoutUrl(detail.payment)
   const canStartPayment = canPayOrder(
     detail.order.orderStatus,
@@ -73,6 +96,10 @@ function AccountOrderDetail() {
         <div>
           <p className="eyebrow">Account</p>
           <h1>{detail.order.orderNumber}</h1>
+          <div className="status-row">
+            <StatusBadge value={detail.order.paymentStatus} />
+            <StatusBadge value={detail.order.fulfillmentStatus} />
+          </div>
           <p>
             {label(detail.order.paymentStatus)} payment /{' '}
             {label(detail.order.fulfillmentStatus)} delivery for{' '}
@@ -105,11 +132,15 @@ function AccountOrderDetail() {
             <dl>
               <div>
                 <dt>Status</dt>
-                <dd>{label(detail.order.paymentStatus)}</dd>
+                <dd>
+                  <StatusBadge value={detail.order.paymentStatus} />
+                </dd>
               </div>
               <div>
                 <dt>Order</dt>
-                <dd>{label(detail.order.orderStatus)}</dd>
+                <dd>
+                  <StatusBadge value={detail.order.orderStatus} />
+                </dd>
               </div>
               <div>
                 <dt>Total</dt>
@@ -148,7 +179,9 @@ function AccountOrderDetail() {
             <dl>
               <div>
                 <dt>Fulfillment</dt>
-                <dd>{label(detail.order.fulfillmentStatus)}</dd>
+                <dd>
+                  <StatusBadge value={detail.order.fulfillmentStatus} />
+                </dd>
               </div>
               <div>
                 <dt>Courier</dt>
@@ -175,13 +208,11 @@ function AccountOrderDetail() {
 }
 
 function activeCheckoutUrl(
-  payment:
-    | {
-        checkoutUrl?: string
-        expiresAt?: number
-        status: string
-      }
-    | null,
+  payment: {
+    checkoutUrl?: string
+    expiresAt?: number
+    status: string
+  } | null,
 ) {
   if (!payment?.checkoutUrl || payment.status !== 'pending') return undefined
   if (payment.expiresAt !== undefined && payment.expiresAt <= Date.now()) {
@@ -197,10 +228,14 @@ function canPayOrder(orderStatus: string, paymentStatus: string) {
 
 function paymentMessage(status: string, activePaymentUrl?: string) {
   if (status === 'paid') return 'Payment has been received.'
+  if (status === 'partially_refunded')
+    return 'This payment was partially refunded.'
   if (status === 'refunded') return 'This payment has been refunded.'
   if (activePaymentUrl) return 'Your invoice is ready.'
-  if (status === 'failed') return 'Payment failed. Create a new invoice to try again.'
-  if (status === 'expired') return 'Payment expired. Create a new invoice to try again.'
+  if (status === 'failed')
+    return 'Payment failed. Create a new invoice to try again.'
+  if (status === 'expired')
+    return 'Payment expired. Create a new invoice to try again.'
   return 'Create an invoice to continue payment.'
 }
 

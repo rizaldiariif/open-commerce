@@ -33,6 +33,10 @@ function SettingsPanel({
     logoImageId: '',
     faviconImageId: '',
     supportEmail: '',
+    currency: 'IDR',
+    locale: 'id-ID',
+    checkoutEnabled: true,
+    maintenanceMode: false,
     seoTitle: '',
     seoDescription: '',
     pendingPaymentExpiryMinutes: '30',
@@ -44,6 +48,10 @@ function SettingsPanel({
       logoImageId: workspace.siteSettings.logoImageId ?? '',
       faviconImageId: workspace.siteSettings.faviconImageId ?? '',
       supportEmail: workspace.siteSettings.supportEmail,
+      currency: workspace.siteSettings.currency,
+      locale: workspace.siteSettings.locale,
+      checkoutEnabled: workspace.siteSettings.checkoutEnabled,
+      maintenanceMode: workspace.siteSettings.maintenanceMode,
       seoTitle: workspace.siteSettings.seoTitle ?? '',
       seoDescription: workspace.siteSettings.seoDescription ?? '',
       pendingPaymentExpiryMinutes: String(
@@ -71,6 +79,10 @@ function SettingsPanel({
           settingsForm.faviconImageId,
         ),
         supportEmail: settingsForm.supportEmail,
+        currency: settingsForm.currency,
+        locale: settingsForm.locale,
+        checkoutEnabled: settingsForm.checkoutEnabled,
+        maintenanceMode: settingsForm.maintenanceMode,
         seoTitle: textOrUndefined(settingsForm.seoTitle),
         seoDescription: textOrUndefined(settingsForm.seoDescription),
         pendingPaymentExpiryMinutes: numberFromInput(
@@ -101,8 +113,23 @@ function SettingsPanel({
         <TextField
           label="Support email"
           value={settingsForm.supportEmail}
+          type="email"
           onChange={(supportEmail) =>
             setSettingsForm((current) => ({ ...current, supportEmail }))
+          }
+        />
+        <TextField
+          label="Currency"
+          value={settingsForm.currency}
+          onChange={(currency) =>
+            setSettingsForm((current) => ({ ...current, currency }))
+          }
+        />
+        <TextField
+          label="Locale"
+          value={settingsForm.locale}
+          onChange={(locale) =>
+            setSettingsForm((current) => ({ ...current, locale }))
           }
         />
         <MediaSelect
@@ -146,6 +173,32 @@ function SettingsPanel({
             }))
           }
         />
+        <label className="checkbox-row">
+          <input
+            type="checkbox"
+            checked={settingsForm.checkoutEnabled}
+            onChange={(event) =>
+              setSettingsForm((current) => ({
+                ...current,
+                checkoutEnabled: event.target.checked,
+              }))
+            }
+          />
+          Checkout enabled
+        </label>
+        <label className="checkbox-row">
+          <input
+            type="checkbox"
+            checked={settingsForm.maintenanceMode}
+            onChange={(event) =>
+              setSettingsForm((current) => ({
+                ...current,
+                maintenanceMode: event.target.checked,
+              }))
+            }
+          />
+          Maintenance mode
+        </label>
         <button type="submit" disabled={!isSuperadmin}>
           Save settings
         </button>
@@ -161,7 +214,13 @@ export const Route = createFileRoute('/admin/settings')({
 function AdminSettings() {
   return (
     <AdminModulePage activeModule="settings">
-      {({ workspace, isSuperadmin, setMessage }) => <SettingsPanel workspace={workspace} isSuperadmin={isSuperadmin} setMessage={setMessage} />}
+      {({ workspace, isSuperadmin, setMessage }) => (
+        <SettingsPanel
+          workspace={workspace}
+          isSuperadmin={isSuperadmin}
+          setMessage={setMessage}
+        />
+      )}
     </AdminModulePage>
   )
 }

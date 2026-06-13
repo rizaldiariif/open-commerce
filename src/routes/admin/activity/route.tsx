@@ -22,6 +22,11 @@ function ActivityPanel({
             </span>
           </div>
         ))}
+        {workspace.recentActivity.length === 0 ? (
+          <p className="empty-state">
+            No admin activity has been recorded yet.
+          </p>
+        ) : null}
       </div>
     </Panel>
   )

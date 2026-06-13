@@ -2,6 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 
 import { api } from '../../convex/_generated/api'
+import { LoadingState } from '../components/RouteFeedback'
 
 export const Route = createFileRoute('/')({
   head: () => ({
@@ -21,11 +22,11 @@ function Home() {
 
   if (home === undefined) {
     return (
-      <section className="content-page">
-        <p className="eyebrow">Storefront</p>
-        <h1>Loading Muse Commerce.</h1>
-        <p>Fetching the latest homepage and catalog content.</p>
-      </section>
+      <LoadingState
+        eyebrow="Storefront"
+        title="Loading Muse Commerce"
+        body="Fetching the latest homepage and catalog content."
+      />
     )
   }
 
@@ -110,6 +111,10 @@ function Home() {
           <p>{homepageContent.aboutText}</p>
         </section>
       ) : null}
+
+      {homepageContent.footerText ? (
+        <footer className="footer-band">{homepageContent.footerText}</footer>
+      ) : null}
     </section>
   )
 }
@@ -117,7 +122,9 @@ function Home() {
 function ProductCard({
   product,
 }: Readonly<{
-  product: NonNullable<ReturnType<typeof useQuery<typeof api.storefront.getHome>>>['featuredProducts'][number]
+  product: NonNullable<
+    ReturnType<typeof useQuery<typeof api.storefront.getHome>>
+  >['featuredProducts'][number]
 }>) {
   return (
     <Link

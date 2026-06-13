@@ -14,6 +14,7 @@ export const PAYMENT_STATUSES = [
   'paid',
   'failed',
   'expired',
+  'partially_refunded',
   'refunded',
 ] as const
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number]
@@ -59,9 +60,10 @@ const orderTransitions: Record<OrderStatus, readonly OrderStatus[]> = {
 
 const paymentTransitions: Record<PaymentStatus, readonly PaymentStatus[]> = {
   pending: ['paid', 'failed', 'expired'],
-  paid: ['refunded'],
+  paid: ['partially_refunded', 'refunded'],
   failed: [],
   expired: [],
+  partially_refunded: ['refunded'],
   refunded: [],
 }
 

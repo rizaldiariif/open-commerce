@@ -2,23 +2,37 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 
 import { api } from '../../../../convex/_generated/api'
+import { AccessRequired, LoadingState } from '../../../components/RouteFeedback'
+import { StatusBadge } from '../../../components/StatusBadge'
 
 export const Route = createFileRoute('/account/orders/')({
   component: AccountOrders,
 })
 
 function AccountOrders() {
-  const orders = useQuery(api.orders.listCustomerOrders)
+  const ordersState = useQuery(api.orders.listCustomerOrders)
 
-  if (orders === undefined) {
+  if (ordersState === undefined) {
     return (
-      <section className="content-page">
-        <p className="eyebrow">Account</p>
-        <h1>Orders</h1>
-        <p>Loading your order history.</p>
-      </section>
+      <LoadingState
+        eyebrow="Account"
+        title="Loading orders"
+        body="Collecting your order history and delivery progress."
+      />
     )
   }
+
+  if (ordersState.status === 'unauthenticated') {
+    return (
+      <AccessRequired
+        title="Login to view orders"
+        body="Order history is saved to your customer account."
+        redirect="/account/orders"
+      />
+    )
+  }
+
+  const orders = ordersState.orders
 
   return (
     <section className="content-page">
@@ -48,10 +62,11 @@ function AccountOrders() {
                   <span>{order.email}</span>
                 </td>
                 <td>
-                  <strong>{label(order.fulfillmentStatus)}</strong>
-                  <span>
-                    {label(order.orderStatus)} / {label(order.paymentStatus)}
-                  </span>
+                  <div className="status-row">
+                    <StatusBadge value={order.fulfillmentStatus} />
+                    <StatusBadge value={order.paymentStatus} />
+                  </div>
+                  <span>{label(order.orderStatus)}</span>
                 </td>
                 <td>{formatMoney(order.grandTotal, order.currency)}</td>
                 <td>{formatDate(order.placedAt)}</td>

@@ -4,6 +4,9 @@ import { useMutation, useQuery } from 'convex/react'
 
 import { api } from '../../../../convex/_generated/api'
 import type { Id } from '../../../../convex/_generated/dataModel'
+import { LoadingState } from '../../../components/RouteFeedback'
+import { StatusBadge } from '../../../components/StatusBadge'
+import { useToast } from '../../../components/Toast'
 
 export const Route = createFileRoute('/admin/orders/$id')({
   component: AdminOrderDetail,
@@ -29,15 +32,23 @@ const emptyShipment = {
 function AdminOrderDetail() {
   const { id } = Route.useParams()
   const orderId = id as Id<'orders'>
-  const detail = useQuery(api.orders.getAdminOrder, { orderId })
+  const detailState = useQuery(api.orders.getAdminOrder, { orderId })
   const updateShipment = useMutation(api.orders.updateShipment)
   const recordManualRefund = useMutation(api.orders.recordManualRefund)
+  const { notify } = useToast()
   const [shipment, setShipment] = useState(emptyShipment)
   const [refundAmount, setRefundAmount] = useState('')
   const [refundReason, setRefundReason] = useState('')
-  const [message, setMessage] = useState('')
+  const [message, setMessage] = useState<{
+    type: 'success' | 'error'
+    text: string
+  } | null>(null)
+  const [isSavingShipment, setIsSavingShipment] = useState(false)
+  const [isSavingRefund, setIsSavingRefund] = useState(false)
 
   useEffect(() => {
+    const detail =
+      detailState?.status === 'ready' ? detailState.detail : undefined
     if (!detail) return
     setShipment({
       fulfillmentStatus: nextFulfillmentStatus(detail.order.fulfillmentStatus),
@@ -48,19 +59,40 @@ function AdminOrderDetail() {
       shippedAt: dateInput(detail.shipment?.shippedAt),
       deliveredAt: dateInput(detail.shipment?.deliveredAt),
     })
-    setRefundAmount(String(detail.order.grandTotal))
-  }, [detail])
+    setRefundAmount(String(remainingRefundableAmount(detail)))
+  }, [detailState])
 
-  if (detail === undefined) {
+  if (detailState === undefined) {
+    return (
+      <LoadingState
+        eyebrow="Operations"
+        title="Loading order"
+        body="Loading items, shipment, refunds, and activity."
+      />
+    )
+  }
+
+  if (
+    detailState.status === 'unauthenticated' ||
+    detailState.status === 'forbidden'
+  ) {
     return (
       <section className="content-page">
         <p className="eyebrow">Operations</p>
-        <h1>Loading order</h1>
+        <h1>Admin access required</h1>
+        <p>
+          {detailState.status === 'unauthenticated'
+            ? 'Sign in with an admin account to manage this order.'
+            : 'Your account does not have permission to manage orders.'}
+        </p>
+        <Link to="/admin/orders" className="primary-link">
+          Back to orders
+        </Link>
       </section>
     )
   }
 
-  if (!detail) {
+  if (!detailState.detail) {
     return (
       <section className="content-page">
         <p className="eyebrow">Operations</p>
@@ -72,31 +104,80 @@ function AdminOrderDetail() {
     )
   }
 
+  const detail = detailState.detail
+  const remainingRefundable = remainingRefundableAmount(detail)
+  const canRefund =
+    ['paid', 'partially_refunded'].includes(detail.order.paymentStatus) &&
+    remainingRefundable > 0
+
   async function submitShipment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setMessage('')
-    await updateShipment({
-      orderId,
-      fulfillmentStatus: shipment.fulfillmentStatus,
-      carrier: shipment.carrier || undefined,
-      service: shipment.service || undefined,
-      trackingNumber: shipment.trackingNumber || undefined,
-      trackingUrl: shipment.trackingUrl || undefined,
-      shippedAt: timestampInput(shipment.shippedAt),
-      deliveredAt: timestampInput(shipment.deliveredAt),
-    })
-    setMessage('Shipment updated.')
+    setMessage(null)
+    setIsSavingShipment(true)
+    try {
+      await updateShipment({
+        orderId,
+        fulfillmentStatus: shipment.fulfillmentStatus,
+        carrier: shipment.carrier || undefined,
+        service: shipment.service || undefined,
+        trackingNumber: shipment.trackingNumber || undefined,
+        trackingUrl: shipment.trackingUrl || undefined,
+        shippedAt: timestampInput(shipment.shippedAt),
+        deliveredAt: timestampInput(shipment.deliveredAt),
+      })
+      setMessage({ type: 'success', text: 'Shipment updated.' })
+      notify({ type: 'success', text: 'Shipment updated.' })
+    } catch (error) {
+      const text =
+        error instanceof Error ? error.message : 'Could not update shipment.'
+      setMessage({ type: 'error', text })
+      notify({ type: 'error', text })
+    } finally {
+      setIsSavingShipment(false)
+    }
   }
 
   async function submitRefund(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setMessage('')
-    await recordManualRefund({
-      orderId,
-      amount: Number(refundAmount),
-      reason: refundReason || undefined,
-    })
-    setMessage('Manual refund recorded without calling Xendit.')
+    setMessage(null)
+    if (!canRefund) {
+      const text = 'This order has no remaining refundable amount.'
+      setMessage({ type: 'error', text })
+      notify({ type: 'error', text })
+      return
+    }
+    if (
+      !window.confirm(
+        'Record this manual refund in Muse Commerce? This does not call Xendit.',
+      )
+    ) {
+      return
+    }
+
+    setIsSavingRefund(true)
+    try {
+      await recordManualRefund({
+        orderId,
+        amount: Number(refundAmount),
+        reason: refundReason || undefined,
+      })
+      setRefundReason('')
+      setMessage({
+        type: 'success',
+        text: 'Manual refund recorded without calling Xendit.',
+      })
+      notify({
+        type: 'success',
+        text: 'Manual refund recorded without calling Xendit.',
+      })
+    } catch (error) {
+      const text =
+        error instanceof Error ? error.message : 'Could not record refund.'
+      setMessage({ type: 'error', text })
+      notify({ type: 'error', text })
+    } finally {
+      setIsSavingRefund(false)
+    }
   }
 
   return (
@@ -105,6 +186,11 @@ function AdminOrderDetail() {
         <div>
           <p className="eyebrow">Operations</p>
           <h1>{detail.order.orderNumber}</h1>
+          <div className="status-row">
+            <StatusBadge value={detail.order.orderStatus} />
+            <StatusBadge value={detail.order.paymentStatus} />
+            <StatusBadge value={detail.order.fulfillmentStatus} />
+          </div>
           <p>
             {detail.order.customerName} -{' '}
             {formatMoney(detail.order.grandTotal, detail.order.currency)}
@@ -115,7 +201,9 @@ function AdminOrderDetail() {
         </Link>
       </header>
 
-      {message ? <p className="form-message success">{message}</p> : null}
+      {message ? (
+        <p className={`form-message ${message.type}`}>{message.text}</p>
+      ) : null}
 
       <div className="checkout-layout">
         <div className="admin-main">
@@ -202,7 +290,9 @@ function AdminOrderDetail() {
                   setShipment((current) => ({ ...current, deliveredAt }))
                 }
               />
-              <button type="submit">Save shipment</button>
+              <button type="submit" disabled={isSavingShipment}>
+                {isSavingShipment ? 'Saving shipment' : 'Save shipment'}
+              </button>
             </form>
           </section>
 
@@ -212,6 +302,12 @@ function AdminOrderDetail() {
               className="admin-form two-column-form"
               onSubmit={submitRefund}
             >
+              <p className="notice">
+                Remaining refundable:{' '}
+                <strong>
+                  {formatMoney(remainingRefundable, detail.order.currency)}
+                </strong>
+              </p>
               <Field
                 label={`Amount (${detail.order.currency})`}
                 type="number"
@@ -223,7 +319,9 @@ function AdminOrderDetail() {
                 value={refundReason}
                 onChange={setRefundReason}
               />
-              <button type="submit">Record refund</button>
+              <button type="submit" disabled={!canRefund || isSavingRefund}>
+                {isSavingRefund ? 'Recording refund' : 'Record refund'}
+              </button>
             </form>
             <p className="notice">
               This records refund status in Muse Commerce only. It does not call
@@ -237,15 +335,21 @@ function AdminOrderDetail() {
           <dl>
             <div>
               <dt>Order</dt>
-              <dd>{label(detail.order.orderStatus)}</dd>
+              <dd>
+                <StatusBadge value={detail.order.orderStatus} />
+              </dd>
             </div>
             <div>
               <dt>Payment</dt>
-              <dd>{label(detail.order.paymentStatus)}</dd>
+              <dd>
+                <StatusBadge value={detail.order.paymentStatus} />
+              </dd>
             </div>
             <div>
               <dt>Fulfillment</dt>
-              <dd>{label(detail.order.fulfillmentStatus)}</dd>
+              <dd>
+                <StatusBadge value={detail.order.fulfillmentStatus} />
+              </dd>
             </div>
             <div>
               <dt>Courier</dt>
@@ -295,6 +399,17 @@ function Field({
   )
 }
 
+function remainingRefundableAmount(detail: {
+  order: { grandTotal: number }
+  refunds: { amount: number }[]
+}) {
+  const refundedTotal = detail.refunds.reduce(
+    (total, refund) => total + refund.amount,
+    0,
+  )
+  return Math.max(0, detail.order.grandTotal - refundedTotal)
+}
+
 function nextFulfillmentStatus(status: string): FulfillmentStatus {
   if (status === 'unfulfilled') return 'processing'
   if (status === 'processing') return 'in_delivery'
@@ -312,10 +427,6 @@ function timestampInput(value: string) {
   if (!value) return undefined
   const timestamp = new Date(value).getTime()
   return Number.isNaN(timestamp) ? undefined : timestamp
-}
-
-function label(value: string) {
-  return value.replaceAll('_', ' ')
 }
 
 function formatMoney(value: number, currency: string) {

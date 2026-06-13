@@ -79,7 +79,9 @@ async function productSummary(ctx: QueryCtx, product: Doc<'products'>) {
   const category = product.categoryId
     ? await ctx.db.get(product.categoryId)
     : undefined
-  const activeVariants = variants.filter((variant) => availableStock(variant) > 0)
+  const activeVariants = variants.filter(
+    (variant) => availableStock(variant) > 0,
+  )
 
   return {
     ...product,
@@ -121,9 +123,24 @@ export const getHome = query({
       content?.status === 'published'
         ? { ...defaultHomepageContent, ...content }
         : defaultHomepageContent
-    const products = (await getActiveProducts(ctx))
-      .sort((a, b) => a.sortOrder - b.sortOrder)
-      .slice(0, 6)
+    const activeProducts = (await getActiveProducts(ctx)).sort(
+      (a, b) => a.sortOrder - b.sortOrder,
+    )
+    const featuredProducts = homeContent.featuredCategorySlugs.length
+      ? (
+          await Promise.all(
+            activeProducts.map(async (product) => {
+              if (!product.categoryId) return null
+              const category = await ctx.db.get(product.categoryId)
+              return category &&
+                homeContent.featuredCategorySlugs.includes(category.slug)
+                ? product
+                : null
+            }),
+          )
+        ).filter((product) => product !== null)
+      : activeProducts
+    const products = featuredProducts.slice(0, 6)
 
     return {
       siteSettings: { ...defaultSiteSettings, ...settings },
@@ -236,7 +253,10 @@ async function getOrCreateCart(
   return (await ctx.db.get(cartId))!
 }
 
-async function cartDetails(ctx: QueryCtx | MutationCtx, profileId: Id<'profiles'>) {
+async function cartDetails(
+  ctx: QueryCtx | MutationCtx,
+  profileId: Id<'profiles'>,
+) {
   const cart = await ctx.db
     .query('carts')
     .withIndex('by_profile_status', (q) =>
@@ -299,12 +319,25 @@ export const getCart = query({
       return { status: 'unauthenticated' as const }
     }
 
-    const details = await cartDetails(ctx, profile._id)
+    const [details, settings] = await Promise.all([
+      cartDetails(ctx, profile._id),
+      ctx.db
+        .query('siteSettings')
+        .withIndex('by_key', (q) => q.eq('key', DEFAULT_SITE_SETTINGS_KEY))
+        .unique(),
+    ])
+    const checkoutEnabled = settings?.checkoutEnabled ?? true
 
     return {
       status: 'ready' as const,
       profile,
-      cart: details,
+      checkoutEnabled,
+      cart: details
+        ? {
+            ...details,
+            canCheckout: details.canCheckout && checkoutEnabled,
+          }
+        : details,
     }
   },
 })
@@ -414,7 +447,9 @@ export const updateCartItem = mutation({
     assertPositiveQuantity(args.quantity)
 
     const details = await cartDetails(ctx, profile._id)
-    const item = details?.items.find((cartItem) => cartItem._id === args.cartItemId)
+    const item = details?.items.find(
+      (cartItem) => cartItem._id === args.cartItemId,
+    )
 
     if (!details || !item) {
       throw new ConvexError('Cart item not found.')
@@ -448,7 +483,9 @@ export const removeCartItem = mutation({
   handler: async (ctx, args) => {
     const profile = await requireCustomerProfile(ctx)
     const details = await cartDetails(ctx, profile._id)
-    const item = details?.items.find((cartItem) => cartItem._id === args.cartItemId)
+    const item = details?.items.find(
+      (cartItem) => cartItem._id === args.cartItemId,
+    )
 
     if (!details || !item) {
       throw new ConvexError('Cart item not found.')

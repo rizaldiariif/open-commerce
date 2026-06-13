@@ -5,6 +5,7 @@ import { type FormEvent, useState } from 'react'
 import { useMutation } from 'convex/react'
 
 import { api } from '../../../../convex/_generated/api'
+import { StatusBadge } from '../../../components/StatusBadge'
 import {
   type AdminMessage,
   type AdminWorkspace,
@@ -28,6 +29,7 @@ function EmailsPanel({
 }>) {
   const upsertEmailTemplate = useMutation(api.emails.upsertEmailTemplate)
   const [templateForm, setTemplateForm] = useState(emptyEmailTemplateForm)
+  const [isSaving, setIsSaving] = useState(false)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -40,6 +42,7 @@ function EmailsPanel({
       return
     }
 
+    setIsSaving(true)
     try {
       await upsertEmailTemplate({
         id: idOrUndefined<'emailTemplates'>(templateForm.id),
@@ -64,6 +67,8 @@ function EmailsPanel({
       setMessage({ type: 'success', text: 'Email template saved.' })
     } catch (error) {
       setMessage({ type: 'error', text: errorMessage(error) })
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -94,7 +99,11 @@ function EmailsPanel({
                       <span>{template.previewText ?? 'No preview text'}</span>
                     </td>
                     <td>{template.subject}</td>
-                    <td>{template.isActive ? 'Active' : 'Disabled'}</td>
+                    <td>
+                      <StatusBadge
+                        value={template.isActive ? 'active' : 'disabled'}
+                      />
+                    </td>
                     <td>
                       <button
                         type="button"
@@ -139,7 +148,9 @@ function EmailsPanel({
                       <span>{event.errorMessage ?? event.provider ?? ''}</span>
                     </td>
                     <td>{event.recipientEmail}</td>
-                    <td>{event.status}</td>
+                    <td>
+                      <StatusBadge value={event.status} />
+                    </td>
                     <td>{new Date(event.createdAt).toLocaleString()}</td>
                   </tr>
                 ))}
@@ -223,8 +234,8 @@ function EmailsPanel({
               Active
             </label>
             <div className="form-actions">
-              <button type="submit" disabled={!isSuperadmin}>
-                Save template
+              <button type="submit" disabled={!isSuperadmin || isSaving}>
+                {isSaving ? 'Saving template' : 'Save template'}
               </button>
               <button
                 type="button"
@@ -248,7 +259,13 @@ export const Route = createFileRoute('/admin/emails')({
 function AdminEmails() {
   return (
     <AdminModulePage activeModule="emails">
-      {({ workspace, isSuperadmin, setMessage }) => <EmailsPanel workspace={workspace} isSuperadmin={isSuperadmin} setMessage={setMessage} />}
+      {({ workspace, isSuperadmin, setMessage }) => (
+        <EmailsPanel
+          workspace={workspace}
+          isSuperadmin={isSuperadmin}
+          setMessage={setMessage}
+        />
+      )}
     </AdminModulePage>
   )
 }

@@ -8,6 +8,7 @@ import { api } from '../../../../convex/_generated/api'
 import {
   type AdminMessage,
   type AdminWorkspace,
+  ConfirmButton,
   Panel,
   TextField,
   errorMessage,
@@ -86,9 +87,9 @@ function MediaPanel({
               <figcaption>
                 <strong>{asset.filename}</strong>
                 <span>{asset.altText ?? asset.contentType}</span>
-                <button
-                  type="button"
-                  onClick={async () => {
+                <ConfirmButton
+                  confirmText={`Hide ${asset.filename} from media pickers? Existing product images may keep using it until changed.`}
+                  onConfirm={async () => {
                     try {
                       await softDeleteMedia({ id: asset._id })
                       setMessage({
@@ -101,7 +102,7 @@ function MediaPanel({
                   }}
                 >
                   Soft delete
-                </button>
+                </ConfirmButton>
               </figcaption>
             </figure>
           ))}
@@ -137,7 +138,9 @@ export const Route = createFileRoute('/admin/media')({
 function AdminMedia() {
   return (
     <AdminModulePage activeModule="media">
-      {({ workspace, setMessage }) => <MediaPanel workspace={workspace} setMessage={setMessage} />}
+      {({ workspace, setMessage }) => (
+        <MediaPanel workspace={workspace} setMessage={setMessage} />
+      )}
     </AdminModulePage>
   )
 }

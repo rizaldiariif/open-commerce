@@ -32,6 +32,18 @@ const contentStatus = v.union(
 
 const couponType = v.union(v.literal('percentage'), v.literal('fixed_amount'))
 
+const adminModule = v.union(
+  v.literal('products'),
+  v.literal('categories'),
+  v.literal('inventory'),
+  v.literal('coupons'),
+  v.literal('media'),
+  v.literal('content'),
+  v.literal('emails'),
+  v.literal('settings'),
+  v.literal('activity'),
+)
+
 const optionValue = v.object({
   name: v.string(),
   value: v.string(),
@@ -165,9 +177,26 @@ async function mediaWithUrls(ctx: QueryCtx, assets: Doc<'mediaAssets'>[]) {
 }
 
 export const getWorkspace = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { module: v.optional(adminModule) },
+  handler: async (ctx, args) => {
     const profile = await requireAdminProfile(ctx)
+    const module = args.module
+    const needsProducts =
+      !module || ['products', 'inventory', 'categories'].includes(module)
+    const needsCategories =
+      !module || ['products', 'categories', 'content'].includes(module)
+    const needsVariants = !module || ['products', 'inventory'].includes(module)
+    const needsMedia =
+      !module ||
+      ['products', 'categories', 'media', 'content', 'settings'].includes(
+        module,
+      )
+    const needsSettings = !module || module === 'settings'
+    const needsContent = !module || module === 'content'
+    const needsActivity = !module || module === 'activity'
+    const needsInventoryMovements = !module || module === 'inventory'
+    const needsCoupons = !module || module === 'coupons'
+    const needsEmails = !module || module === 'emails'
     const [
       categories,
       products,
@@ -181,23 +210,39 @@ export const getWorkspace = query({
       emailTemplates,
       recentEmailEvents,
     ] = await Promise.all([
-      ctx.db.query('categories').collect(),
-      ctx.db.query('products').collect(),
-      ctx.db.query('productVariants').collect(),
-      ctx.db.query('mediaAssets').collect(),
-      ctx.db
-        .query('siteSettings')
-        .withIndex('by_key', (q) => q.eq('key', DEFAULT_SITE_SETTINGS_KEY))
-        .unique(),
-      ctx.db
-        .query('siteContent')
-        .withIndex('by_key', (q) => q.eq('key', DEFAULT_HOME_CONTENT_KEY))
-        .unique(),
-      ctx.db.query('adminActivityLogs').order('desc').take(12),
-      ctx.db.query('inventoryMovements').order('desc').take(12),
-      ctx.db.query('coupons').collect(),
-      ctx.db.query('emailTemplates').collect(),
-      ctx.db.query('emailEvents').order('desc').take(20),
+      needsCategories
+        ? ctx.db.query('categories').collect()
+        : Promise.resolve([]),
+      needsProducts ? ctx.db.query('products').collect() : Promise.resolve([]),
+      needsVariants
+        ? ctx.db.query('productVariants').collect()
+        : Promise.resolve([]),
+      needsMedia ? ctx.db.query('mediaAssets').collect() : Promise.resolve([]),
+      needsSettings
+        ? ctx.db
+            .query('siteSettings')
+            .withIndex('by_key', (q) => q.eq('key', DEFAULT_SITE_SETTINGS_KEY))
+            .unique()
+        : Promise.resolve(null),
+      needsContent
+        ? ctx.db
+            .query('siteContent')
+            .withIndex('by_key', (q) => q.eq('key', DEFAULT_HOME_CONTENT_KEY))
+            .unique()
+        : Promise.resolve(null),
+      needsActivity
+        ? ctx.db.query('adminActivityLogs').order('desc').take(12)
+        : Promise.resolve([]),
+      needsInventoryMovements
+        ? ctx.db.query('inventoryMovements').order('desc').take(12)
+        : Promise.resolve([]),
+      needsCoupons ? ctx.db.query('coupons').collect() : Promise.resolve([]),
+      needsEmails
+        ? ctx.db.query('emailTemplates').collect()
+        : Promise.resolve([]),
+      needsEmails
+        ? ctx.db.query('emailEvents').order('desc').take(20)
+        : Promise.resolve([]),
     ])
 
     return {
@@ -686,6 +731,10 @@ export const updateSiteSettings = mutation({
     logoImageId: v.optional(v.id('mediaAssets')),
     faviconImageId: v.optional(v.id('mediaAssets')),
     supportEmail: v.string(),
+    currency: v.string(),
+    locale: v.string(),
+    checkoutEnabled: v.boolean(),
+    maintenanceMode: v.boolean(),
     seoTitle: v.optional(v.string()),
     seoDescription: v.optional(v.string()),
     pendingPaymentExpiryMinutes: v.number(),
@@ -694,6 +743,8 @@ export const updateSiteSettings = mutation({
     const actor = await requireSuperadminProfile(ctx)
     const storeName = args.storeName.trim()
     const supportEmail = args.supportEmail.trim().toLowerCase()
+    const currency = args.currency.trim().toUpperCase()
+    const locale = args.locale.trim()
 
     if (!storeName) {
       throw new ConvexError('Store name is required.')
@@ -701,6 +752,12 @@ export const updateSiteSettings = mutation({
 
     if (!supportEmail.includes('@')) {
       throw new ConvexError('Support email must be valid.')
+    }
+    if (!currency) {
+      throw new ConvexError('Currency is required.')
+    }
+    if (!locale) {
+      throw new ConvexError('Locale is required.')
     }
 
     assertPositiveInteger(
@@ -720,6 +777,10 @@ export const updateSiteSettings = mutation({
         logoImageId: args.logoImageId,
         faviconImageId: args.faviconImageId,
         supportEmail,
+        currency,
+        locale,
+        checkoutEnabled: args.checkoutEnabled,
+        maintenanceMode: args.maintenanceMode,
         seoTitle: cleanOptionalText(args.seoTitle),
         seoDescription: cleanOptionalText(args.seoDescription),
         pendingPaymentExpiryMinutes: args.pendingPaymentExpiryMinutes,
@@ -735,6 +796,10 @@ export const updateSiteSettings = mutation({
       logoImageId: args.logoImageId,
       faviconImageId: args.faviconImageId,
       supportEmail,
+      currency,
+      locale,
+      checkoutEnabled: args.checkoutEnabled,
+      maintenanceMode: args.maintenanceMode,
       seoTitle: cleanOptionalText(args.seoTitle),
       seoDescription: cleanOptionalText(args.seoDescription),
       pendingPaymentExpiryMinutes: args.pendingPaymentExpiryMinutes,

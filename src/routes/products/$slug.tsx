@@ -4,6 +4,8 @@ import { useMutation, useQuery } from 'convex/react'
 
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import { LoadingState } from '../../components/RouteFeedback'
+import { useToast } from '../../components/Toast'
 
 export const Route = createFileRoute('/products/$slug')({
   head: ({ params }) => ({
@@ -23,12 +25,14 @@ function ProductDetail() {
   const product = useQuery(api.storefront.getProductBySlug, { slug })
   const current = useQuery(api.profiles.current)
   const addToCart = useMutation(api.storefront.addToCart)
+  const { notify } = useToast()
   const [selectedVariantId, setSelectedVariantId] = useState('')
   const [quantity, setQuantity] = useState('1')
   const [message, setMessage] = useState<{
     type: 'success' | 'error'
     text: string
   } | null>(null)
+  const [isAdding, setIsAdding] = useState(false)
 
   const selectedVariant = useMemo(() => {
     const fallback = product?.variants.find(
@@ -46,31 +50,43 @@ function ProductDetail() {
     event.preventDefault()
 
     if (!selectedVariant) {
-      setMessage({ type: 'error', text: 'Choose an available product option.' })
+      const nextMessage = {
+        type: 'error' as const,
+        text: 'Choose an available product option.',
+      }
+      setMessage(nextMessage)
+      notify(nextMessage)
       return
     }
 
+    setIsAdding(true)
     try {
       await addToCart({
         variantId: selectedVariant._id as Id<'productVariants'>,
         quantity: Number(quantity),
       })
-      setMessage({ type: 'success', text: 'Added to cart.' })
+      const nextMessage = { type: 'success' as const, text: 'Added to cart.' }
+      setMessage(nextMessage)
+      notify(nextMessage)
     } catch (error) {
-      setMessage({
+      const nextMessage = {
         type: 'error',
         text: error instanceof Error ? error.message : 'Could not add to cart.',
-      })
+      } as const
+      setMessage(nextMessage)
+      notify(nextMessage)
+    } finally {
+      setIsAdding(false)
     }
   }
 
   if (product === undefined) {
     return (
-      <section className="content-page">
-        <p className="eyebrow">Product</p>
-        <h1>Loading product.</h1>
-        <p>Fetching the latest product information.</p>
-      </section>
+      <LoadingState
+        eyebrow="Product"
+        title="Loading product"
+        body="Fetching the latest price, stock, and images."
+      />
     )
   }
 
@@ -110,7 +126,9 @@ function ProductDetail() {
         </Link>
         <p className="eyebrow">{product.category?.name ?? 'Muse Collection'}</p>
         <h1>{product.name}</h1>
-        {product.description ? <p className="lede">{product.description}</p> : null}
+        {product.description ? (
+          <p className="lede">{product.description}</p>
+        ) : null}
 
         <form className="purchase-form" onSubmit={handleAddToCart}>
           <label>
@@ -162,7 +180,11 @@ function ProductDetail() {
             />
           </label>
 
-          {current === null ? (
+          {current === undefined ? (
+            <button type="button" disabled>
+              Checking session
+            </button>
+          ) : current === null ? (
             <Link
               to="/login"
               search={{ redirect: `/products/${product.slug}` }}
@@ -173,15 +195,26 @@ function ProductDetail() {
           ) : (
             <button
               type="submit"
-              disabled={!selectedVariant || selectedVariant.availableStock <= 0}
+              disabled={
+                isAdding ||
+                !selectedVariant ||
+                selectedVariant.availableStock <= 0
+              }
             >
-              Add to cart
+              {isAdding ? 'Adding' : 'Add to cart'}
             </button>
           )}
         </form>
 
         {message ? (
-          <p className={`form-message ${message.type}`}>{message.text}</p>
+          <div className={`form-message ${message.type}`}>
+            <p>{message.text}</p>
+            {message.type === 'success' ? (
+              <Link to="/cart" className="text-link">
+                View cart
+              </Link>
+            ) : null}
+          </div>
         ) : null}
       </div>
     </section>

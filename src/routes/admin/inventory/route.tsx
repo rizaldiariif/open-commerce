@@ -27,10 +27,12 @@ function InventoryPanel({
 }>) {
   const adjustInventory = useMutation(api.admin.adjustInventory)
   const [inventoryForm, setInventoryForm] = useState(emptyInventoryForm)
+  const [isSaving, setIsSaving] = useState(false)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
+    setIsSaving(true)
     try {
       await adjustInventory({
         variantId: inventoryForm.variantId as Id<'productVariants'>,
@@ -41,6 +43,8 @@ function InventoryPanel({
       setMessage({ type: 'success', text: 'Inventory adjusted.' })
     } catch (error) {
       setMessage({ type: 'error', text: errorMessage(error) })
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -73,7 +77,13 @@ function InventoryPanel({
                     <td>{product?.name ?? 'Missing product'}</td>
                     <td>{variant.stockOnHand}</td>
                     <td>{variant.reservedStock}</td>
-                    <td>{variant.lowStockThreshold ?? 'None'}</td>
+                    <td>
+                      {variant.lowStockThreshold ?? 'None'}
+                      {variant.lowStockThreshold !== undefined &&
+                      variant.stockOnHand <= variant.lowStockThreshold ? (
+                        <span className="cart-warning">Low stock</span>
+                      ) : null}
+                    </td>
                   </tr>
                 )
               })}
@@ -124,7 +134,9 @@ function InventoryPanel({
                 setInventoryForm((current) => ({ ...current, reason }))
               }
             />
-            <button type="submit">Record movement</button>
+            <button type="submit" disabled={isSaving}>
+              {isSaving ? 'Recording movement' : 'Record movement'}
+            </button>
           </form>
         </Panel>
 
@@ -163,7 +175,9 @@ export const Route = createFileRoute('/admin/inventory')({
 function AdminInventory() {
   return (
     <AdminModulePage activeModule="inventory">
-      {({ workspace, setMessage }) => <InventoryPanel workspace={workspace} setMessage={setMessage} />}
+      {({ workspace, setMessage }) => (
+        <InventoryPanel workspace={workspace} setMessage={setMessage} />
+      )}
     </AdminModulePage>
   )
 }

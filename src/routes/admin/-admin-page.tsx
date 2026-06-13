@@ -3,6 +3,8 @@ import { Link } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 
 import { api } from '../../../convex/_generated/api'
+import { LoadingState } from '../../components/RouteFeedback'
+import { useToast } from '../../components/Toast'
 import {
   type AdminMessage,
   type AdminModuleId,
@@ -22,16 +24,28 @@ export function AdminModulePage({
   }) => ReactNode
 }>) {
   const access = useQuery(api.profiles.requireAdmin)
-  const workspace = useQuery(api.admin.getWorkspace)
+  const workspace = useQuery(
+    api.admin.getWorkspace,
+    access?.allowed ? { module: activeModule } : 'skip',
+  )
   const [message, setMessage] = useState<AdminMessage | null>(null)
+  const { notify } = useToast()
 
-  if (access === undefined || workspace === undefined) {
+  function showMessage(nextMessage: AdminMessage) {
+    setMessage(nextMessage)
+    notify({
+      type: nextMessage.type,
+      text: nextMessage.text,
+    })
+  }
+
+  if (access === undefined || (access.allowed && workspace === undefined)) {
     return (
-      <section className="content-page">
-        <p className="eyebrow">Operations</p>
-        <h1>Admin</h1>
-        <p>Loading admin workspace.</p>
-      </section>
+      <LoadingState
+        eyebrow="Operations"
+        title="Loading admin workspace"
+        body="Preparing the tools for this admin module."
+      />
     )
   }
 
@@ -63,6 +77,16 @@ export function AdminModulePage({
     )
   }
 
+  if (workspace === undefined) {
+    return (
+      <LoadingState
+        eyebrow="Operations"
+        title="Loading admin workspace"
+        body="Preparing the tools for this admin module."
+      />
+    )
+  }
+
   return (
     <section className="admin-page">
       <header className="admin-heading">
@@ -75,15 +99,6 @@ export function AdminModulePage({
           </p>
         </div>
         <div className="admin-kpis" aria-label="Catalog summary">
-          <span>
-            <strong>{workspace.products.length}</strong> products
-          </span>
-          <span>
-            <strong>{workspace.variants.length}</strong> variants
-          </span>
-          <span>
-            <strong>{workspace.mediaAssets.length}</strong> media
-          </span>
           <Link to="/admin/orders" className="secondary-link">
             Orders
           </Link>
@@ -109,7 +124,7 @@ export function AdminModulePage({
       {children({
         workspace,
         isSuperadmin: access.profile.role === 'superadmin',
-        setMessage,
+        setMessage: showMessage,
       })}
     </section>
   )

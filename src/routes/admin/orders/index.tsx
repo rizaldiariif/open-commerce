@@ -3,6 +3,8 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 
 import { api } from '../../../../convex/_generated/api'
+import { LoadingState } from '../../../components/RouteFeedback'
+import { StatusBadge } from '../../../components/StatusBadge'
 
 export const Route = createFileRoute('/admin/orders/')({
   component: AdminOrders,
@@ -20,20 +22,47 @@ function AdminOrders() {
   const [search, setSearch] = useState('')
   const [fulfillmentStatus, setFulfillmentStatus] =
     useState<FulfillmentFilter>('')
-  const orders = useQuery(api.orders.listAdminOrders, {
+  const ordersState = useQuery(api.orders.listAdminOrders, {
     search,
     fulfillmentStatus: fulfillmentStatus || undefined,
   })
 
-  if (orders === undefined) {
+  if (ordersState === undefined) {
+    return (
+      <LoadingState
+        eyebrow="Operations"
+        title="Loading orders"
+        body="Preparing the order queue and filters."
+      />
+    )
+  }
+
+  if (ordersState.status !== 'ready') {
     return (
       <section className="content-page">
         <p className="eyebrow">Operations</p>
-        <h1>Orders</h1>
-        <p>Loading order queue.</p>
+        <h1>Admin access required</h1>
+        <p>
+          {ordersState.status === 'unauthenticated'
+            ? 'Sign in with an admin account to manage orders.'
+            : 'Your account does not have order management access.'}
+        </p>
+        <Link
+          to={ordersState.status === 'unauthenticated' ? '/login' : '/admin'}
+          search={
+            ordersState.status === 'unauthenticated'
+              ? { redirect: '/admin/orders' }
+              : undefined
+          }
+          className="primary-link"
+        >
+          {ordersState.status === 'unauthenticated' ? 'Login' : 'Admin'}
+        </Link>
       </section>
     )
   }
+
+  const orders = ordersState.orders
 
   return (
     <section className="admin-page">
@@ -101,10 +130,11 @@ function AdminOrders() {
                   <span>{order.email}</span>
                 </td>
                 <td>
-                  <strong>{label(order.fulfillmentStatus)}</strong>
-                  <span>
-                    {label(order.orderStatus)} / {label(order.paymentStatus)}
-                  </span>
+                  <div className="status-row">
+                    <StatusBadge value={order.fulfillmentStatus} />
+                    <StatusBadge value={order.paymentStatus} />
+                  </div>
+                  <span>{label(order.orderStatus)}</span>
                 </td>
                 <td>{formatMoney(order.grandTotal, order.currency)}</td>
                 <td>{formatDate(order.placedAt)}</td>

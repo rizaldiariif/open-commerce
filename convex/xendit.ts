@@ -49,7 +49,12 @@ export async function createXenditInvoice(
     | (Partial<XenditInvoice> & { message?: string; error_code?: string })
     | null
 
-  if (!response.ok || !data?.id || typeof data.amount !== 'number') {
+  if (
+    !response.ok ||
+    !data?.id ||
+    !data.invoice_url ||
+    typeof data.amount !== 'number'
+  ) {
     const detail = data?.message ?? data?.error_code ?? response.statusText
     throw new ConvexError(`Xendit invoice creation failed: ${detail}`)
   }

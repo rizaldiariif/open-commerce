@@ -5,9 +5,11 @@ import { type FormEvent, useState } from 'react'
 import { useMutation } from 'convex/react'
 
 import { api } from '../../../../convex/_generated/api'
+import { StatusBadge } from '../../../components/StatusBadge'
 import {
   type AdminMessage,
   type AdminWorkspace,
+  ConfirmButton,
   MediaSelect,
   Panel,
   TextArea,
@@ -76,7 +78,11 @@ function CategoriesPanel({
                   </td>
                   <td>{category.slug}</td>
                   <td>{category.sortOrder}</td>
-                  <td>{category.isActive ? 'Active' : 'Inactive'}</td>
+                  <td>
+                    <StatusBadge
+                      value={category.isActive ? 'active' : 'disabled'}
+                    />
+                  </td>
                   <td>
                     <button
                       type="button"
@@ -95,9 +101,9 @@ function CategoriesPanel({
                     >
                       Edit
                     </button>
-                    <button
-                      type="button"
-                      onClick={async () => {
+                    <ConfirmButton
+                      confirmText={`Delete or deactivate ${category.name}? Products that use it will keep their category but the category may be hidden.`}
+                      onConfirm={async () => {
                         try {
                           await deleteCategory({ id: category._id })
                           setMessage({
@@ -113,7 +119,7 @@ function CategoriesPanel({
                       }}
                     >
                       Delete
-                    </button>
+                    </ConfirmButton>
                   </td>
                 </tr>
               ))}
@@ -220,7 +226,9 @@ export const Route = createFileRoute('/admin/categories')({
 function AdminCategories() {
   return (
     <AdminModulePage activeModule="categories">
-      {({ workspace, setMessage }) => <CategoriesPanel workspace={workspace} setMessage={setMessage} />}
+      {({ workspace, setMessage }) => (
+        <CategoriesPanel workspace={workspace} setMessage={setMessage} />
+      )}
     </AdminModulePage>
   )
 }

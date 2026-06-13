@@ -197,22 +197,34 @@ export const getCheckout = query({
 export const previewCoupon = query({
   args: { code: v.string(), subtotal: v.number() },
   handler: async (ctx, args) => {
-    const profile = await requireProfile(ctx)
+    const profile = await currentProfile(ctx)
+    if (!profile) return { status: 'unauthenticated' as const }
     assertMoneyAmount(args.subtotal)
+    const code = normalizeCode(args.code)
+    if (!code) return { status: 'empty' as const }
     const coupon = await ctx.db
       .query('coupons')
-      .withIndex('by_code', (q) => q.eq('code', normalizeCode(args.code)))
+      .withIndex('by_code', (q) => q.eq('code', code))
       .unique()
-    if (!coupon) return null
-    return {
-      coupon,
-      discountAmount: await couponDiscount(
-        ctx,
+    if (!coupon) return { status: 'not_found' as const, code }
+    try {
+      return {
+        status: 'valid' as const,
         coupon,
-        args.subtotal,
-        profile._id,
-        profile.email,
-      ),
+        discountAmount: await couponDiscount(
+          ctx,
+          coupon,
+          args.subtotal,
+          profile._id,
+          profile.email,
+        ),
+      }
+    } catch (error) {
+      return {
+        status: 'invalid' as const,
+        code,
+        reason: error instanceof Error ? error.message : 'Coupon is invalid.',
+      }
     }
   },
 })
@@ -413,14 +425,17 @@ export const createOrder = mutation({
 export const getPaymentOrder = query({
   args: { orderNumber: v.string() },
   handler: async (ctx, args) => {
-    const profile = await requireProfile(ctx)
+    const profile = await currentProfile(ctx)
+    if (!profile) return { status: 'unauthenticated' as const }
     const order = await ctx.db
       .query('orders')
       .withIndex('by_order_number', (q) =>
         q.eq('orderNumber', args.orderNumber),
       )
       .unique()
-    if (!order || order.profileId !== profile._id) return null
+    if (!order || order.profileId !== profile._id) {
+      return { status: 'not_found' as const }
+    }
     const items = await ctx.db
       .query('orderItems')
       .withIndex('by_order', (q) => q.eq('orderId', order._id))
@@ -429,7 +444,7 @@ export const getPaymentOrder = query({
       .query('payments')
       .withIndex('by_order', (q) => q.eq('orderId', order._id))
       .unique()
-    return { order, items, payment }
+    return { status: 'ready' as const, order, items, payment }
   },
 })
 
