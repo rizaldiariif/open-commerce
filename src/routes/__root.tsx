@@ -55,8 +55,6 @@ const navLinks = [
   { to: '/products', label: 'Shop' },
   { to: '/cart', label: 'Cart' },
   { to: '/account', label: 'Account' },
-  { to: '/setup', label: 'Setup' },
-  { to: '/admin', label: 'Admin' },
 ] as const
 
 function RootComponent() {
