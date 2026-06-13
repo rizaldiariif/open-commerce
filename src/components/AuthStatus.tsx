@@ -18,47 +18,53 @@ export function AuthStatus() {
     }
   }, [current, ensureProfile, isAuthenticated])
 
+  const linkClass =
+    'px-3 py-2 text-[0.8rem] font-semibold uppercase tracking-[0.1em] text-muted no-underline transition-colors hover:text-ink'
+
   if (isLoading || current === undefined) {
     return (
-      <nav className="account-nav" aria-label="Account navigation">
-        <span className="nav-muted">Checking session</span>
-      </nav>
+      <span className="px-3 py-2 text-[0.74rem] uppercase tracking-[0.1em] text-faint">
+        Checking session
+      </span>
     )
   }
 
   if (!isAuthenticated || !current) {
     return (
-      <nav className="account-nav" aria-label="Account navigation">
+      <>
         <Link
           to="/login"
           search={{ redirect: undefined }}
-          activeProps={{ 'data-status': 'active' }}
+          className={linkClass}
         >
           Login
         </Link>
-        <Link to="/register" activeProps={{ 'data-status': 'active' }}>
+        <Link
+          to="/register"
+          className="inline-flex min-h-[36px] items-center bg-ink px-4 py-2 text-[0.8rem] font-semibold uppercase tracking-[0.1em] text-paper no-underline transition-colors hover:bg-ink-soft"
+        >
           Register
         </Link>
-      </nav>
+      </>
     )
   }
 
   const label = current.profile?.name ?? current.user.email ?? 'Account'
 
   return (
-    <nav className="account-nav" aria-label="Account navigation">
-      <Link to="/account" activeProps={{ 'data-status': 'active' }}>
+    <>
+      <Link to="/account" className={`${linkClass} max-w-[14ch] truncate`}>
         {label}
       </Link>
       <button
         type="button"
-        className="nav-button"
+        className="cursor-pointer border-0 bg-transparent px-3 py-2 text-[0.8rem] font-semibold uppercase tracking-[0.1em] text-muted transition-colors hover:text-ink"
         onClick={() => {
           void signOut().then(() => navigate({ to: '/' }))
         }}
       >
         Sign out
       </button>
-    </nav>
+    </>
   )
 }

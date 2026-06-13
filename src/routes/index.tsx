@@ -7,10 +7,10 @@ import { LoadingState } from '../components/RouteFeedback'
 export const Route = createFileRoute('/')({
   head: () => ({
     meta: [
-      { title: 'Muse Commerce' },
+      { title: 'Muse — Goods of Considered Make' },
       {
         name: 'description',
-        content: 'Curated single-brand shopping from Muse Commerce.',
+        content: 'Curated single-brand objects from the Muse studio.',
       },
     ],
   }),
@@ -24,13 +24,14 @@ function Home() {
     return (
       <LoadingState
         eyebrow="Storefront"
-        title="Loading Muse Commerce"
+        title="Loading the studio"
         body="Fetching the latest homepage and catalog content."
       />
     )
   }
 
   const { homepageContent, featuredProducts, siteSettings } = home
+  const pieceCount = featuredProducts.length
 
   return (
     <section className="storefront-page">
@@ -38,33 +39,52 @@ function Home() {
         <p className="announcement">{homepageContent.announcement}</p>
       ) : null}
 
-      <div className="home-hero">
-        <div>
+      {/* Asymmetric hero: statement + meta column */}
+      <div className="grid gap-12 md:grid-cols-[1.7fr_1fr] md:gap-16">
+        <div className="flex flex-col justify-center">
           <p className="eyebrow">{siteSettings.storeName}</p>
-          <h1>{homepageContent.title}</h1>
+          <h1 className="text-[clamp(2.8rem,8vw,6.5rem)]">
+            {homepageContent.title}
+          </h1>
           {homepageContent.subtitle ? (
             <p className="lede">{homepageContent.subtitle}</p>
           ) : null}
+          <div className="action-row">
+            <Link
+              to={homepageContent.heroCtaHref ?? '/products'}
+              className="primary-link"
+            >
+              {homepageContent.heroCtaLabel ?? 'Shop the collection'}
+            </Link>
+            <Link to="/cart" className="secondary-link">
+              View cart
+            </Link>
+          </div>
         </div>
-        {homepageContent.heroImageUrl ? (
+
+        <dl className="grid content-center gap-0 self-stretch border-t border-ink md:border-l md:border-t-0 md:pl-10">
+          <MetaRow label="Collection" value={siteSettings.storeName} />
+          <MetaRow
+            label="Catalogue"
+            value={`${pieceCount} ${pieceCount === 1 ? 'piece' : 'pieces'}`}
+          />
+          <MetaRow label="Shipping" value="Worldwide" />
+          <MetaRow label="Made" value="In limited runs" last />
+        </dl>
+      </div>
+
+      {homepageContent.heroImageUrl ? (
+        <div className="relative">
           <img
             src={homepageContent.heroImageUrl}
             alt=""
-            className="hero-image"
+            className="aspect-[16/8] w-full object-cover"
           />
-        ) : null}
-        <div className="action-row">
-          <Link
-            to={homepageContent.heroCtaHref ?? '/products'}
-            className="primary-link"
-          >
-            {homepageContent.heroCtaLabel ?? 'Shop products'}
-          </Link>
-          <Link to="/cart" className="secondary-link">
-            View cart
-          </Link>
+          <span className="absolute left-4 top-4 bg-ink px-3 py-1.5 text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-paper">
+            New season
+          </span>
         </div>
-      </div>
+      ) : null}
 
       {homepageContent.homepageBanners.length ? (
         <div className="banner-grid">
@@ -85,8 +105,8 @@ function Home() {
       <section className="section-block">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">Catalog</p>
-            <h2>Featured products</h2>
+            <p className="eyebrow">Catalogue</p>
+            <h2>Featured objects</h2>
           </div>
           <Link to="/products" className="text-link">
             Browse all
@@ -113,9 +133,30 @@ function Home() {
       ) : null}
 
       {homepageContent.footerText ? (
-        <footer className="footer-band">{homepageContent.footerText}</footer>
+        <p className="footer-band">{homepageContent.footerText}</p>
       ) : null}
     </section>
+  )
+}
+
+function MetaRow({
+  label,
+  value,
+  last,
+}: Readonly<{ label: string; value: string; last?: boolean }>) {
+  return (
+    <div
+      className={`flex items-baseline justify-between gap-4 border-b border-line py-4 ${
+        last ? 'md:border-b-0' : ''
+      }`}
+    >
+      <dt className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted">
+        {label}
+      </dt>
+      <dd className="m-0 font-display text-base font-semibold tracking-[-0.01em] text-ink">
+        {value}
+      </dd>
+    </div>
   )
 }
 
