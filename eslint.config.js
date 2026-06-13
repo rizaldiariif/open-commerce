@@ -8,6 +8,7 @@ export default tseslint.config(
       '.convex/**',
       '.output/**',
       '.tanstack/**',
+      '.vercel/**',
       '.vinxi/**',
       'convex/_generated/**',
       'dist/**',
