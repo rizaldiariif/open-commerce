@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useQuery } from 'convex/react'
+import { useState } from 'react'
+import { useAction, useQuery } from 'convex/react'
 
-import { api } from '../../convex/_generated/api'
+import { api } from '../../../convex/_generated/api'
 
 export const Route = createFileRoute('/payment/$orderNumber')({
   head: () => ({
@@ -16,6 +17,28 @@ export const Route = createFileRoute('/payment/$orderNumber')({
 function Payment() {
   const { orderNumber } = Route.useParams()
   const orderState = useQuery(api.checkout.getPaymentOrder, { orderNumber })
+  const createInvoice = useAction(api.payments.createInvoiceForOrder)
+  const [isStartingPayment, setIsStartingPayment] = useState(false)
+  const [paymentError, setPaymentError] = useState<string | null>(null)
+
+  async function handlePayment() {
+    if (!orderState) return
+
+    setIsStartingPayment(true)
+    setPaymentError(null)
+    try {
+      const result = await createInvoice({ orderId: orderState.order._id })
+      if (result.checkoutUrl) {
+        window.location.assign(result.checkoutUrl)
+      }
+    } catch (error) {
+      setPaymentError(
+        error instanceof Error ? error.message : 'Could not start payment.',
+      )
+    } finally {
+      setIsStartingPayment(false)
+    }
+  }
 
   if (orderState === undefined) {
     return (
@@ -37,6 +60,12 @@ function Payment() {
       </section>
     )
   }
+
+  const activePaymentUrl = activeCheckoutUrl(orderState.payment)
+  const canStartPayment = canPayOrder(
+    orderState.order.orderStatus,
+    orderState.order.paymentStatus,
+  )
 
   return (
     <section className="checkout-page">
@@ -86,13 +115,26 @@ function Payment() {
             </div>
           </dl>
           <p className="notice">
-            {paymentMessage(orderState.order.paymentStatus)}
+            {paymentMessage(
+              orderState.order.paymentStatus,
+              activePaymentUrl,
+            )}
           </p>
-          {orderState.payment?.checkoutUrl &&
-          orderState.order.paymentStatus === 'pending' ? (
-            <a className="primary-link" href={orderState.payment.checkoutUrl}>
+          {paymentError ? (
+            <p className="form-message error">{paymentError}</p>
+          ) : null}
+          {activePaymentUrl ? (
+            <a className="primary-link" href={activePaymentUrl}>
               Pay with Xendit
             </a>
+          ) : canStartPayment ? (
+            <button
+              type="button"
+              onClick={() => void handlePayment()}
+              disabled={isStartingPayment}
+            >
+              {isStartingPayment ? 'Creating invoice' : 'Continue payment'}
+            </button>
           ) : null}
         </aside>
       </div>
@@ -100,10 +142,35 @@ function Payment() {
   )
 }
 
-function paymentMessage(status: string) {
+function activeCheckoutUrl(
+  payment:
+    | {
+        checkoutUrl?: string
+        expiresAt?: number
+        status: string
+      }
+    | null,
+) {
+  if (!payment?.checkoutUrl || payment.status !== 'pending') return undefined
+  if (payment.expiresAt !== undefined && payment.expiresAt <= Date.now()) {
+    return undefined
+  }
+  return payment.checkoutUrl
+}
+
+function canPayOrder(orderStatus: string, paymentStatus: string) {
+  if (orderStatus === 'cancelled') return false
+  return ['pending', 'failed', 'expired'].includes(paymentStatus)
+}
+
+function paymentMessage(status: string, checkoutUrl?: string) {
   if (status === 'paid') return 'Payment has been received.'
-  if (status === 'failed') return 'Payment failed. Please place a new order.'
-  if (status === 'expired') return 'Payment expired. Please place a new order.'
+  if (status === 'refunded') return 'This payment has been refunded.'
+  if (status === 'failed') return 'Payment failed. Create a new invoice to try again.'
+  if (status === 'expired') return 'Payment expired. Create a new invoice to try again.'
+  if (!checkoutUrl) {
+    return 'Create an invoice to continue payment.'
+  }
   return 'Complete payment through the secure Xendit invoice link.'
 }
 

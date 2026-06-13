@@ -7,7 +7,6 @@ import {
   action,
   httpAction,
   internalMutation,
-  internalQuery,
 } from './_generated/server'
 import type { MutationCtx } from './_generated/server'
 import { releasePendingOrder } from './checkout'
@@ -29,15 +28,26 @@ const xenditStatus = v.union(
 export const createInvoiceForOrder = action({
   args: { orderId: v.id('orders') },
   handler: async (ctx, args): Promise<{ checkoutUrl?: string }> => {
-    const order = (await ctx.runQuery(
+    const order = (await ctx.runMutation(
       internal.payments.prepareInvoiceForOrder,
       {
         orderId: args.orderId,
       },
     )) as PreparedInvoiceOrder
 
-    if (order.existingPayment?.checkoutUrl) {
-      return { checkoutUrl: order.existingPayment.checkoutUrl }
+    const reusableCheckoutUrl = reusablePaymentCheckoutUrl(order.existingPayment)
+    if (reusableCheckoutUrl) {
+      return { checkoutUrl: reusableCheckoutUrl }
+    }
+
+    if (!process.env.XENDIT_SECRET_KEY) {
+      await ctx.runMutation(internal.payments.recordInvoiceConfigurationMissing, {
+        orderId: args.orderId,
+        amount: order.grandTotal,
+        currency: order.currency,
+        orderNumber: order.orderNumber,
+      })
+      return {}
     }
 
     const baseUrl = process.env.SITE_URL ?? 'http://localhost:3000'
@@ -82,7 +92,64 @@ export const createInvoiceForOrder = action({
   },
 })
 
-export const prepareInvoiceForOrder = internalQuery({
+export const recordInvoiceConfigurationMissing = internalMutation({
+  args: {
+    orderId: v.id('orders'),
+    amount: v.number(),
+    currency: v.string(),
+    orderNumber: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now()
+    const existing = await ctx.db
+      .query('payments')
+      .withIndex('by_order', (q) => q.eq('orderId', args.orderId))
+      .unique()
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        checkoutUrl: undefined,
+        expiresAt: undefined,
+        amount: args.amount,
+        currency: args.currency,
+        status: 'pending',
+        rawStatus: 'missing_xendit_secret',
+        updatedAt: now,
+      })
+    } else {
+      await ctx.db.insert('payments', {
+        orderId: args.orderId,
+        provider: 'xendit',
+        providerInvoiceId: `missing-config:${args.orderNumber}`,
+        providerReference: args.orderNumber,
+        amount: args.amount,
+        currency: args.currency,
+        status: 'pending',
+        rawStatus: 'missing_xendit_secret',
+        createdAt: now,
+        updatedAt: now,
+      })
+    }
+    await ctx.db.patch(args.orderId, {
+      orderStatus: 'pending_payment',
+      paymentStatus: 'pending',
+      updatedAt: now,
+    })
+
+    await ctx.db.insert('paymentWebhookEvents', {
+      provider: 'xendit',
+      providerEventId: `invoice-config-missing:${args.orderId}:${now}`,
+      orderId: args.orderId,
+      externalId: args.orderNumber,
+      status: 'rejected',
+      reason: 'Xendit secret key is not configured.',
+      payload: { source: 'invoice_configuration' },
+      createdAt: now,
+    })
+  },
+})
+
+export const prepareInvoiceForOrder = internalMutation({
   args: { orderId: v.id('orders') },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx)
@@ -97,18 +164,37 @@ export const prepareInvoiceForOrder = internalQuery({
     if (!order || order.profileId !== profile._id) {
       throw new ConvexError('Order not found.')
     }
-    if (
-      order.orderStatus !== 'pending_payment' ||
-      order.paymentStatus !== 'pending'
-    ) {
-      throw new ConvexError('Order is not awaiting payment.')
-    }
-
     const existingPayment = await ctx.db
       .query('payments')
       .withIndex('by_order', (q) => q.eq('orderId', order._id))
       .unique()
-    return { ...order, existingPayment }
+
+    if (order.paymentStatus === 'paid') {
+      throw new ConvexError('Order has already been paid.')
+    }
+    if (order.paymentStatus === 'refunded') {
+      throw new ConvexError('Refunded orders cannot be paid again.')
+    }
+    if (order.orderStatus === 'cancelled') {
+      throw new ConvexError('Cancelled orders cannot be paid.')
+    }
+    if (
+      order.orderStatus === 'pending_payment' &&
+      order.paymentStatus === 'pending'
+    ) {
+      return { ...order, existingPayment }
+    }
+    if (
+      order.orderStatus === 'payment_failed' &&
+      isRetryablePaymentStatus(order.paymentStatus)
+    ) {
+      await reserveOrderForPaymentRetry(ctx, order)
+      const updatedOrder = await ctx.db.get(order._id)
+      if (!updatedOrder) throw new ConvexError('Order not found.')
+      return { ...updatedOrder, existingPayment }
+    }
+
+    throw new ConvexError('Order is not awaiting payment.')
   },
 })
 
@@ -137,12 +223,19 @@ export const recordInvoiceCreated = internalMutation({
         checkoutUrl: args.checkoutUrl,
         amount: args.amount,
         currency: args.currency,
+        status: 'pending',
         rawStatus: args.rawStatus,
         expiresAt: args.expiresAt,
+        paidAt: undefined,
         updatedAt: now,
       })
       const order = await ctx.db.get(args.orderId)
       if (order) {
+        await ctx.db.patch(order._id, {
+          orderStatus: 'pending_payment',
+          paymentStatus: 'pending',
+          updatedAt: now,
+        })
         await enqueueOrderEmail(ctx, {
           templateKey: 'invoice_created',
           recipientEmail: order.email,
@@ -172,6 +265,11 @@ export const recordInvoiceCreated = internalMutation({
     })
     const order = await ctx.db.get(args.orderId)
     if (order) {
+      await ctx.db.patch(order._id, {
+        orderStatus: 'pending_payment',
+        paymentStatus: 'pending',
+        updatedAt: now,
+      })
       await enqueueOrderEmail(ctx, {
         templateKey: 'invoice_created',
         recipientEmail: order.email,
@@ -191,6 +289,17 @@ export const markInvoiceCreationFailed = internalMutation({
   handler: async (ctx, args) => {
     await releasePendingOrder(ctx, args.orderId, 'failed')
     const now = Date.now()
+    const existing = await ctx.db
+      .query('payments')
+      .withIndex('by_order', (q) => q.eq('orderId', args.orderId))
+      .unique()
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        status: 'failed',
+        rawStatus: args.errorMessage,
+        updatedAt: now,
+      })
+    }
     await ctx.db.insert('paymentWebhookEvents', {
       provider: 'xendit',
       providerEventId: `invoice-create-failed:${args.orderId}:${now}`,
@@ -214,12 +323,40 @@ export const handleXenditWebhook = httpAction(async (ctx, request) => {
   > | null
   if (!payload) return json({ ok: false, error: 'invalid_json' }, 400)
 
-  const invoiceId = stringField(payload, 'id')
-  const externalId = stringField(payload, 'external_id')
-  const rawStatus = stringField(payload, 'status')
-  const amount = numberField(payload, 'amount')
-  const currency = stringField(payload, 'currency') ?? 'IDR'
+  const invoicePayload = invoiceWebhookPayload(payload)
   const providerEventId =
+    stringField(payload, 'event') ??
+    stringField(payload, 'event_id') ??
+    stringField(invoicePayload, 'event') ??
+    stringField(invoicePayload, 'event_id') ??
+    `${
+      stringField(invoicePayload, 'id') ?? stringField(payload, 'id') ?? 'unknown'
+    }:${
+      stringField(invoicePayload, 'status') ??
+      stringField(payload, 'status') ??
+      'unknown'
+    }`
+
+  if (!invoicePayload) {
+    await ctx.runMutation(internal.payments.recordWebhookDecision, {
+      providerEventId,
+      status: 'rejected',
+      reason: 'Ignored unsupported Xendit webhook event.',
+      payload,
+    })
+    return json({
+      ok: true,
+      status: 'ignored',
+      reason: 'Unsupported Xendit webhook event.',
+    })
+  }
+
+  const invoiceId = stringField(invoicePayload, 'id')
+  const externalId = stringField(invoicePayload, 'external_id')
+  const rawStatus = stringField(invoicePayload, 'status')
+  const amount = numberField(invoicePayload, 'amount')
+  const currency = stringField(invoicePayload, 'currency') ?? 'IDR'
+  const invoiceProviderEventId =
     stringField(payload, 'event') ??
     stringField(payload, 'event_id') ??
     `${invoiceId ?? 'unknown'}:${rawStatus ?? 'unknown'}`
@@ -227,7 +364,7 @@ export const handleXenditWebhook = httpAction(async (ctx, request) => {
   const normalizedStatus = normalizeXenditStatus(rawStatus)
   if (!invoiceId || !externalId || !normalizedStatus) {
     await ctx.runMutation(internal.payments.recordWebhookDecision, {
-      providerEventId,
+      providerEventId: invoiceProviderEventId,
       providerInvoiceId: invoiceId,
       externalId,
       status: 'rejected',
@@ -238,14 +375,14 @@ export const handleXenditWebhook = httpAction(async (ctx, request) => {
   }
 
   const result = await ctx.runMutation(internal.payments.applyXenditWebhook, {
-    providerEventId,
+    providerEventId: invoiceProviderEventId,
     providerInvoiceId: invoiceId,
     externalId,
     amount,
     currency,
     rawStatus,
     status: normalizedStatus,
-    paidAt: parseOptionalDate(payload, 'paid_at'),
+    paidAt: parseOptionalDate(invoicePayload, 'paid_at'),
     payload,
   })
 
@@ -497,6 +634,84 @@ async function siteSettings(ctx: MutationCtx) {
   }
 }
 
+async function reserveOrderForPaymentRetry(
+  ctx: MutationCtx,
+  order: Doc<'orders'>,
+) {
+  const now = Date.now()
+  const items = await ctx.db
+    .query('orderItems')
+    .withIndex('by_order', (q) => q.eq('orderId', order._id))
+    .collect()
+  const reservations: Array<{
+    item: Doc<'orderItems'>
+    variant: Doc<'productVariants'>
+  }> = []
+
+  for (const item of items) {
+    if (!item.variantId) continue
+    const variant = await ctx.db.get(item.variantId)
+    if (!variant || availableStock(variant) < item.quantity) {
+      throw new ConvexError(
+        `${item.productName} is no longer available in the requested quantity.`,
+      )
+    }
+    reservations.push({ item, variant })
+  }
+
+  for (const { item, variant } of reservations) {
+    const nextReserved = variant.reservedStock + item.quantity
+    await ctx.db.patch(variant._id, {
+      reservedStock: nextReserved,
+      updatedAt: now,
+    })
+    await ctx.db.insert('inventoryMovements', {
+      variantId: variant._id,
+      type: 'reservation',
+      quantityDelta: -item.quantity,
+      stockAfter: variant.stockOnHand - nextReserved,
+      reason: 'Payment retry reservation',
+      orderId: order._id,
+      createdAt: now,
+    })
+  }
+
+  const redemptions = await ctx.db
+    .query('couponRedemptions')
+    .withIndex('by_order', (q) => q.eq('orderId', order._id))
+    .collect()
+  for (const redemption of redemptions) {
+    if (redemption.status === 'released') {
+      await ctx.db.patch(redemption._id, {
+        status: 'reserved',
+        updatedAt: now,
+      })
+    }
+  }
+
+  await ctx.db.patch(order._id, {
+    orderStatus: 'pending_payment',
+    paymentStatus: 'pending',
+    updatedAt: now,
+  })
+}
+
+function availableStock(variant: Doc<'productVariants'>) {
+  return Math.max(0, variant.stockOnHand - variant.reservedStock)
+}
+
+function isRetryablePaymentStatus(status: Doc<'orders'>['paymentStatus']) {
+  return status === 'failed' || status === 'expired'
+}
+
+function reusablePaymentCheckoutUrl(payment: Doc<'payments'> | null) {
+  if (!payment?.checkoutUrl || payment.status !== 'pending') return undefined
+  if (payment.expiresAt !== undefined && payment.expiresAt <= Date.now()) {
+    return undefined
+  }
+  return payment.checkoutUrl
+}
+
 async function recordWebhook(
   ctx: MutationCtx,
   args: {
@@ -538,17 +753,50 @@ function normalizeXenditStatus(status: string | undefined) {
   }
 }
 
-function stringField(payload: Record<string, unknown>, key: string) {
+function invoiceWebhookPayload(payload: Record<string, unknown>) {
+  if (looksLikeInvoiceWebhook(payload)) return payload
+  const data = objectField(payload, 'data')
+  if (data && looksLikeInvoiceWebhook(data)) return data
+  return null
+}
+
+function looksLikeInvoiceWebhook(payload: Record<string, unknown>) {
+  return Boolean(
+    stringField(payload, 'id') &&
+      stringField(payload, 'external_id') &&
+      stringField(payload, 'status'),
+  )
+}
+
+function objectField(payload: Record<string, unknown>, key: string) {
+  const value = payload[key]
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null
+}
+
+function stringField(
+  payload: Record<string, unknown> | null | undefined,
+  key: string,
+) {
+  if (!payload) return undefined
   const value = payload[key]
   return typeof value === 'string' && value.trim() ? value.trim() : undefined
 }
 
-function numberField(payload: Record<string, unknown>, key: string) {
+function numberField(
+  payload: Record<string, unknown> | null | undefined,
+  key: string,
+) {
+  if (!payload) return undefined
   const value = payload[key]
   return typeof value === 'number' ? value : undefined
 }
 
-function parseOptionalDate(payload: Record<string, unknown>, key: string) {
+function parseOptionalDate(
+  payload: Record<string, unknown> | null | undefined,
+  key: string,
+) {
   const value = stringField(payload, key)
   if (!value) return undefined
   const timestamp = Date.parse(value)

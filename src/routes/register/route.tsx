@@ -4,7 +4,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useNavigate } from '@tanstack/react-router'
 import { useMutation } from 'convex/react'
 
-import { api } from '../../convex/_generated/api'
+import { api } from '../../../convex/_generated/api'
 
 export const Route = createFileRoute('/register')({
   component: Register,

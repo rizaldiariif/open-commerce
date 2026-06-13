@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 
-import { api } from '../../convex/_generated/api'
+import { api } from '../../../convex/_generated/api'
 
-export const Route = createFileRoute('/products')({
+export const Route = createFileRoute('/products/')({
   head: () => ({
     meta: [
       { title: 'Products | Muse Commerce' },
@@ -13,10 +13,10 @@ export const Route = createFileRoute('/products')({
       },
     ],
   }),
-  component: Products,
+  component: ProductsIndex,
 })
 
-function Products() {
+function ProductsIndex() {
   const catalog = useQuery(api.storefront.listProducts)
 
   if (catalog === undefined) {

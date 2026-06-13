@@ -1,0 +1,3 @@
+- always use simple solution to solve or create anything
+- if simple solution doesn't work, make it work, don't complicate the solution
+- each route.tsx file should only focus on 1 thing, never make a single file too complicated

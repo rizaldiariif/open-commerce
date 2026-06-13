@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 
-import { api } from '../../convex/_generated/api'
+import { api } from '../../../../convex/_generated/api'
 
-export const Route = createFileRoute('/admin/orders')({
+export const Route = createFileRoute('/admin/orders/')({
   component: AdminOrders,
 })
 

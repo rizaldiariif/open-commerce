@@ -2,14 +2,15 @@ import {
   type Dispatch,
   type FormEvent,
   type SetStateAction,
+  useEffect,
   useMemo,
   useState,
 } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useAction, useMutation, useQuery } from 'convex/react'
 
-import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
+import { api } from '../../../convex/_generated/api'
+import type { Id } from '../../../convex/_generated/dataModel'
 
 export const Route = createFileRoute('/checkout')({
   head: () => ({
@@ -56,6 +57,24 @@ function Checkout() {
         : undefined,
     [checkout, selectedAddressId],
   )
+
+  useEffect(() => {
+    if (checkout?.status !== 'ready') return
+
+    setContact((current) => {
+      const next = {
+        name: current.name || checkout.profile.name || '',
+        email: current.email || checkout.profile.email,
+        phone: current.phone || checkout.profile.phone || '',
+      }
+
+      return current.name === next.name &&
+        current.email === next.email &&
+        current.phone === next.phone
+        ? current
+        : next
+    })
+  }, [checkout])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -155,104 +174,125 @@ function Checkout() {
       {message ? <p className="form-message error">{message}</p> : null}
 
       <form className="checkout-layout" onSubmit={handleSubmit}>
-        <div className="admin-panel">
-          <h2>Contact</h2>
-          <label>
-            Full name
-            <input
-              required
-              value={contact.name}
-              onChange={(event) =>
-                setContact((current) => ({
-                  ...current,
-                  name: event.target.value,
-                }))
-              }
-            />
-          </label>
-          <label>
-            Email
-            <input
-              required
-              type="email"
-              value={contact.email}
-              onChange={(event) =>
-                setContact((current) => ({
-                  ...current,
-                  email: event.target.value,
-                }))
-              }
-            />
-          </label>
-          <label>
-            Phone
-            <input
-              value={contact.phone}
-              onChange={(event) =>
-                setContact((current) => ({
-                  ...current,
-                  phone: event.target.value,
-                }))
-              }
-            />
-          </label>
+        <div className="checkout-main">
+          <section className="checkout-card">
+            <div className="checkout-card-heading">
+              <h2>Contact</h2>
+            </div>
+            <div className="checkout-contact-grid">
+              <label className="checkout-field">
+                Full name
+                <input
+                  required
+                  autoComplete="name"
+                  value={contact.name}
+                  onChange={(event) =>
+                    setContact((current) => ({
+                      ...current,
+                      name: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <label className="checkout-field">
+                Email
+                <input
+                  required
+                  type="email"
+                  autoComplete="email"
+                  value={contact.email}
+                  onChange={(event) =>
+                    setContact((current) => ({
+                      ...current,
+                      email: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <label className="checkout-field">
+                Phone
+                <input
+                  type="tel"
+                  autoComplete="tel"
+                  value={contact.phone}
+                  onChange={(event) =>
+                    setContact((current) => ({
+                      ...current,
+                      phone: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+            </div>
+          </section>
 
-          <h2>Shipping address</h2>
-          {checkout.addresses.length ? (
-            <label>
-              Saved address
-              <select
-                value={selectedAddressId}
-                onChange={(event) => setSelectedAddressId(event.target.value)}
-              >
-                <option value="">Use a new address</option>
-                {checkout.addresses.map((saved) => (
-                  <option key={saved._id} value={saved._id}>
-                    {saved.recipientName}, {saved.city}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
+          <section className="checkout-card">
+            <div className="checkout-card-heading">
+              <h2>Shipping address</h2>
+            </div>
 
-          {!selectedAddressId ? (
-            <AddressFields address={address} setAddress={setAddress} />
-          ) : null}
+            {checkout.addresses.length ? (
+              <label className="checkout-field">
+                Saved address
+                <select
+                  value={selectedAddressId}
+                  onChange={(event) => setSelectedAddressId(event.target.value)}
+                >
+                  <option value="">Use a new address</option>
+                  {checkout.addresses.map((saved) => (
+                    <option key={saved._id} value={saved._id}>
+                      {saved.recipientName}, {saved.city}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
 
-          {!selectedAddressId ? (
-            <label className="checkbox-row">
-              <input
-                type="checkbox"
-                checked={saveAddress}
-                onChange={(event) => setSaveAddress(event.target.checked)}
+            {!selectedAddressId ? (
+              <div className="checkout-address-grid">
+                <AddressFields address={address} setAddress={setAddress} />
+              </div>
+            ) : null}
+
+            {!selectedAddressId ? (
+              <label className="checkout-checkbox">
+                <input
+                  type="checkbox"
+                  checked={saveAddress}
+                  onChange={(event) => setSaveAddress(event.target.checked)}
+                />
+                Save this address
+              </label>
+            ) : null}
+
+            <label className="checkout-field">
+              Order notes
+              <textarea
+                rows={3}
+                value={notes}
+                onChange={(event) => setNotes(event.target.value)}
               />
-              Save this address
             </label>
-          ) : null}
-
-          <label>
-            Order notes
-            <textarea
-              rows={3}
-              value={notes}
-              onChange={(event) => setNotes(event.target.value)}
-            />
-          </label>
+          </section>
         </div>
 
-        <aside className="cart-summary">
+        <aside className="cart-summary checkout-summary">
           <h2>Order summary</h2>
-          <div className="stack-list">
+          <div className="checkout-summary-items">
             {checkout.cart.items.map((item) => (
-              <div key={item._id}>
-                <strong>{item.productSnapshot.name}</strong>
-                <span>
-                  {item.quantity} x {formatMoney(item.unitPrice)}
-                </span>
+              <div key={item._id} className="checkout-summary-item">
+                <div>
+                  <strong>{item.productSnapshot.name}</strong>
+                  <span>{item.variantSnapshot.name}</span>
+                  <small>
+                    {item.quantity} x {formatMoney(item.unitPrice)}
+                  </small>
+                </div>
+                <strong>{formatMoney(item.lineTotal)}</strong>
               </div>
             ))}
           </div>
-          <label>
+          <label className="checkout-field">
             Coupon
             <input
               value={couponCode}
@@ -305,10 +345,20 @@ function AddressFields({
   return (
     <>
       {fields.map((field) => (
-        <label key={field}>
+        <label
+          key={field}
+          className={`checkout-field ${
+            field === 'addressLine1' || field === 'addressLine2'
+              ? 'checkout-field-wide'
+              : ''
+          }`}
+        >
           {fieldLabels[field]}
           <input
             required={field !== 'addressLine2'}
+            type={field === 'phone' ? 'tel' : 'text'}
+            inputMode={field === 'postalCode' ? 'numeric' : undefined}
+            autoComplete={fieldAutoComplete[field]}
             value={address[field]}
             onChange={(event) =>
               setAddress((current) => ({
@@ -332,6 +382,17 @@ const fieldLabels: Record<keyof typeof emptyAddress, string> = {
   province: 'Province',
   postalCode: 'Postal code',
   country: 'Country',
+}
+
+const fieldAutoComplete: Record<keyof typeof emptyAddress, string> = {
+  recipientName: 'shipping name',
+  phone: 'shipping tel',
+  addressLine1: 'shipping address-line1',
+  addressLine2: 'shipping address-line2',
+  city: 'shipping address-level2',
+  province: 'shipping address-level1',
+  postalCode: 'shipping postal-code',
+  country: 'shipping country-name',
 }
 
 function formatMoney(value: number) {

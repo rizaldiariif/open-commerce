@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 
-import { api } from '../../convex/_generated/api'
+import { api } from '../../../convex/_generated/api'
 
-export const Route = createFileRoute('/account')({
+export const Route = createFileRoute('/account/')({
   component: Account,
 })
 

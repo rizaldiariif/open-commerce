@@ -436,6 +436,13 @@ export const getPaymentOrder = query({
 export const expirePendingOrder = internalMutation({
   args: { orderId: v.id('orders') },
   handler: async (ctx, args) => {
+    const storeSettings = await settings(ctx)
+    const cutoff =
+      Date.now() - (storeSettings.pendingPaymentExpiryMinutes ?? 30) * 60 * 1000
+    const order = await ctx.db.get(args.orderId)
+    if (!order || order.orderStatus !== 'pending_payment') return
+    if (order.updatedAt > cutoff) return
+
     await releasePendingOrder(ctx, args.orderId, 'expired')
   },
 })
@@ -454,7 +461,7 @@ export const cleanupExpiredPendingOrders = internalMutation({
       .collect()
 
     for (const order of pending) {
-      if (order.createdAt <= cutoff) {
+      if (order.updatedAt <= cutoff) {
         await releasePendingOrder(ctx, order._id, 'expired')
       }
     }
